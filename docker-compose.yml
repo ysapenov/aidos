@@ -1,11 +1,20 @@
 services:
   aidos-bot:
-    build: .
+    image: ghcr.io/ysapenov/aidos:latest
     container_name: aidos-bot
     restart: unless-stopped
     env_file:
       - .env
     volumes:
-      - ./data:/app/data    # Persist SQLite database across restarts
+      - ./data:/app/data
     environment:
       - DATABASE_PATH=/app/data/aidos.db
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.docker/config.json:/config.json:ro # Allows watchtower to use your docker login credentials
+    command: --interval 60 aidos-bot # Checks for updates every 60 seconds
