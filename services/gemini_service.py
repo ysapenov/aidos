@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 # ─── Gemini client (module-level singleton) ────────────────────────────────────
 _client = genai.Client(api_key=settings.gemini_api_key)
 
-# ─── Prompt template ──────────────────────────────────────────────────────────
 _TRANSLATION_PROMPT = """You are a professional English-Russian translator and language tutor. \
 Your task is to translate a single English word into Russian and provide learning material.
 
@@ -23,8 +22,8 @@ Given the English word: "{word}"
 Respond ONLY in the following format (use plain text with these exact emoji and labels):
 
 🔤 Translations:
-• [Russian word] ([transliteration]) — [brief meaning in English]
-• [alternative translation if exists] ([transliteration]) — [brief meaning]
+• [Russian word] — [brief meaning in English]
+• [alternative translation if exists] — [brief meaning]
 
 📝 Part of speech: [noun / verb / adjective / adverb / etc.]
 
@@ -44,7 +43,6 @@ Respond ONLY in the following format (use plain text with these exact emoji and 
 
 Important rules:
 - Provide 1-3 Russian translations (most common first)
-- Always include transliteration in brackets
 - Provide exactly 3 example sentences
 - Provide 2-3 collocations
 - If the word does not exist in English, reply only with: ❌ Unknown word: "{word}"
