@@ -12,6 +12,7 @@ from telegram.ext import (
     ConversationHandler,
     CommandHandler,
     MessageHandler,
+    CallbackQueryHandler,
     filters,
 )
 from services.gemini_service import translate_word as gemini_translate
@@ -36,8 +37,10 @@ TRANSLATING = 0
 async def start_translate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Entry point: /translate — activate translate mode."""
     user = update.effective_user
+    if update.callback_query:
+        await update.callback_query.answer()
     logger.info(f"User {user.id} entered translate mode.")
-    await update.message.reply_text(TRANSLATE_MODE_START, parse_mode="HTML")
+    await update.effective_message.reply_text(TRANSLATE_MODE_START, parse_mode="HTML")
     return TRANSLATING
 
 
@@ -52,12 +55,12 @@ async def handle_word(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
 
     # Guard: empty input
     if not text:
-        await update.message.reply_text(TRANSLATE_EMPTY_ERROR, parse_mode="HTML")
+        await update.effective_message.reply_text(TRANSLATE_EMPTY_ERROR, parse_mode="HTML")
         return TRANSLATING
 
     # Guard: multiple words
     if len(text.split()) > 1:
-        await update.message.reply_text(TRANSLATE_MULTI_WORD_ERROR, parse_mode="HTML")
+        await update.effective_message.reply_text(TRANSLATE_MULTI_WORD_ERROR, parse_mode="HTML")
         return TRANSLATING
 
     word = text.lower()
@@ -67,12 +70,12 @@ async def handle_word(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         translation_text = await gemini_translate(word)
     except Exception as e:
         logger.error(f"Gemini API error for word '{word}': {e}")
-        await update.message.reply_text(ERROR_GENERIC, parse_mode="HTML")
+        await update.effective_message.reply_text(ERROR_GENERIC, parse_mode="HTML")
         return TRANSLATING  # Stay in mode — let user try again
 
     # Format and send translation
     message = format_translation(word, translation_text)
-    await update.message.reply_text(message, parse_mode="HTML")
+    await update.effective_message.reply_text(message, parse_mode="HTML")
 
     # Persist to history (best-effort — don't crash if DB fails)
     try:
@@ -91,14 +94,17 @@ async def end_translate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     """Exit point: /stop or /cancel — deactivate translate mode."""
     user = update.effective_user
     logger.info(f"User {user.id} exited translate mode.")
-    await update.message.reply_text(TRANSLATE_MODE_END, parse_mode="HTML")
+    await update.effective_message.reply_text(TRANSLATE_MODE_END, parse_mode="HTML")
     return ConversationHandler.END
 
 
 def build_translation_conversation() -> ConversationHandler:
     """Build and return the ConversationHandler for translate mode."""
     return ConversationHandler(
-        entry_points=[CommandHandler("translate", start_translate)],
+        entry_points=[
+            CommandHandler("translate", start_translate),
+            CallbackQueryHandler(start_translate, pattern="^translate$"),
+        ],
         states={
             TRANSLATING: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_word),

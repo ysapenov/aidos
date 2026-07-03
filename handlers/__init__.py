@@ -4,8 +4,8 @@ handlers/__init__.py — Central handler registration.
 Call register_handlers(app) from main.py to wire everything up.
 """
 
-from telegram.ext import Application, CommandHandler, MessageHandler, filters
-from handlers.core import start, help_command, menu
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
+from handlers.core import start, help_command, menu, menu_callback
 from handlers.translation import build_translation_conversation
 from handlers.history import history
 from handlers.admin import allow_user, revoke_user, list_users
@@ -22,6 +22,7 @@ def register_handlers(app: Application) -> None:
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("menu", menu))
+    app.add_handler(CallbackQueryHandler(menu_callback, pattern="^(help|history)$"))
 
     # ── History ───────────────────────────────────────────────────────────────
     app.add_handler(CommandHandler("history", history))
