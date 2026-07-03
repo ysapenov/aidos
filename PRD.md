@@ -32,7 +32,7 @@ Looking up English words and understanding how to use them in context requires s
 |----|-------------|
 | FR-1.1 | `/translate` command enters **translate mode** |
 | FR-1.2 | In translate mode, every plain text message is treated as a word to translate |
-| FR-1.3 | `/endtranslate` command exits translate mode |
+| FR-1.3 | `/stop` command exits translate mode |
 | FR-1.4 | Only **single English words** are accepted; multi-word input is rejected with a helpful message |
 | FR-1.5 | Translation direction is always **English → Russian** |
 
@@ -64,7 +64,7 @@ For each word, the bot provides:
 | `/help` | Full command reference |
 | `/menu` | Interactive inline keyboard menu |
 | `/translate` | Enter translate mode |
-| `/endtranslate` | Exit translate mode |
+| `/stop` | Exit translate mode |
 | `/history` | View translation history |
 | `/history clear` | Clear translation history |
 | `/allow <user_id>` | *(Admin)* Grant access to a user |
@@ -138,7 +138,7 @@ The following features are planned but **out of scope for Phase 1**:
 
 > **US-2:** As a user, I want to see example sentences for each word, so I can understand how the word is used in context.
 
-> **US-3:** As a user, I want to type `/endtranslate` to exit translate mode, so the bot stops interpreting my messages as words to translate.
+> **US-3:** As a user, I want to type `/stop` to exit translate mode, so the bot stops interpreting my messages as words to translate.
 
 > **US-4:** As a user, I want to see my translation history, so I can review words I've looked up before.
 

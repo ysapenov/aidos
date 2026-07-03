@@ -50,7 +50,7 @@ ADMIN_USER_IDS=your_telegram_user_id
 | `/help` | Show all commands |
 | `/menu` | Interactive menu |
 | `/translate` | Enter translate mode |
-| `/endtranslate` | Exit translate mode |
+| `/stop` | Exit translate mode |
 | `/history` | View translation history |
 | `/history clear` | Clear history |
 | `/allow <id>` | *(Admin)* Grant user access |
@@ -72,7 +72,7 @@ Bot:  📚 resilience
          🇷🇺 Её стойкость вдохновила всех.
       ...
 
-You:  /endtranslate
+You:  /stop
 Bot:  ✅ Translate mode deactivated.
 ```
 

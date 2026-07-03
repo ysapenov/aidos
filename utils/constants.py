@@ -37,7 +37,7 @@ HELP_MESSAGE = (
     f"{EMOJI_ROBOT} <b>Aidos — Command Reference</b>\n\n"
     "<b>Translation</b>\n"
     "  /translate — Enter translate mode\n"
-    "  /endtranslate — Exit translate mode\n\n"
+    "  /stop — Exit translate mode\n\n"
     "<b>History</b>\n"
     "  /history — View your last 20 translations\n"
     "  /history clear — Clear your history\n\n"
@@ -54,7 +54,7 @@ HELP_MESSAGE = (
 TRANSLATE_MODE_START = (
     f"{EMOJI_TRANSLATE} <b>Translate mode activated!</b>\n\n"
     "Send me any English word and I'll translate it to Russian.\n"
-    f"Type /endtranslate when you're done."
+    f"Type /stop when you're done."
 )
 
 TRANSLATE_MODE_END = (

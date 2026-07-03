@@ -2,7 +2,7 @@
 handlers/translation.py — Translation mode via ConversationHandler.
 
 Flow:
-    /translate  →  TRANSLATING state  →  user sends words  →  /endtranslate
+    /translate  →  TRANSLATING state  →  user sends words  →  /stop
 """
 
 import logging
@@ -88,7 +88,7 @@ async def handle_word(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
 
 
 async def end_translate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Exit point: /endtranslate or /cancel — deactivate translate mode."""
+    """Exit point: /stop or /cancel — deactivate translate mode."""
     user = update.effective_user
     logger.info(f"User {user.id} exited translate mode.")
     await update.message.reply_text(TRANSLATE_MODE_END, parse_mode="HTML")
@@ -105,7 +105,7 @@ def build_translation_conversation() -> ConversationHandler:
             ],
         },
         fallbacks=[
-            CommandHandler("endtranslate", end_translate),
+            CommandHandler("stop", end_translate),
             CommandHandler("cancel", end_translate),
         ],
         # Allow the conversation to run per-user (default behaviour)
