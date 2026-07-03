@@ -1,0 +1,11 @@
+services:
+  aidos-bot:
+    build: .
+    container_name: aidos-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data    # Persist SQLite database across restarts
+    environment:
+      - DATABASE_PATH=/app/data/aidos.db
