@@ -21,7 +21,7 @@ Given the English word: "{word}"
 
 Respond ONLY in the following format (use plain text with these exact emoji and labels):
 
-🗣️ Pronunciation: [[phonetic transcription of the English word, e.g., [wərd]]]
+🗣️ Pronunciation: [insert phonetic transcription here]
 
 🔤 Translations:
 • [Russian word] — [brief meaning in English]
@@ -44,6 +44,7 @@ Respond ONLY in the following format (use plain text with these exact emoji and 
 • [another phrase] — [Russian equivalent]
 
 Important rules:
+- Always include the English phonetic transcription
 - Provide 1-3 Russian translations (most common first)
 - Provide exactly 3 example sentences
 - Provide 2-3 collocations
