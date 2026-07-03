@@ -21,6 +21,8 @@ Given the English word: "{word}"
 
 Respond ONLY in the following format (use plain text with these exact emoji and labels):
 
+🗣️ Pronunciation: [[phonetic transcription of the English word, e.g., [wərd]]]
+
 🔤 Translations:
 • [Russian word] — [brief meaning in English]
 • [alternative translation if exists] — [brief meaning]

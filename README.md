@@ -5,7 +5,7 @@ A personal Telegram bot that translates English words to Russian with contextual
 ## Features
 
 - **Session-based translation** — type `/translate`, then send words one by one
-- **Rich output** — translations, transliteration, examples, collocations
+- **Rich output** — translations, pronunciation, examples, collocations
 - **Translation history** — review past lookups with `/history`
 - **Access control** — whitelist-only, with admin commands to manage users
 - **Dockerized** — runs on your laptop with a single command
@@ -65,7 +65,11 @@ Bot:  🔤 Translate mode activated! Send me any English word...
 
 You:  resilience
 Bot:  📚 resilience
-      🔤 устойчивость (ustoychivost') — stability, resistance
+      ──────────────────────────────
+      🗣️ Pronunciation: [rəˈzilyəns]
+
+      🔤 Translations:
+      • устойчивость — stability, resistance
       📝 Part of speech: noun
       💬 Examples:
       1. 🇬🇧 Her resilience inspired everyone.

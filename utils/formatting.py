@@ -90,9 +90,9 @@ def _extract_first_translation(full_response: str) -> str:
     for line in full_response.splitlines():
         line = line.strip()
         if line.startswith(("•", "-", "*")):
-            # A typical line: "• устойчивость (ustoychivost') — stability, resistance"
+            # A typical line: "• устойчивость — stability, resistance"
             line = line.lstrip("*•-#").strip()
-            # Extract just the Russian word before the transliteration or definition
+            # Extract just the Russian word before the definition
             primary_word = line.split(" (")[0].split(" — ")[0].split(" - ")[0].strip()
             if primary_word:
                 return escape_html(primary_word)

@@ -42,7 +42,7 @@ For each word, the bot provides:
 
 | ID | Requirement |
 |----|-------------|
-| FR-2.1 | Primary Russian translation(s) with transliteration (e.g., устойчивость / ustoychivost') |
+| FR-2.1 | Primary Russian translation(s) with English pronunciation (e.g., [rəˈzilyəns]) |
 | FR-2.2 | Part of speech (noun, verb, adjective, etc.) |
 | FR-2.3 | 2–3 example sentences in English, each with a Russian translation |
 | FR-2.4 | 2–3 common collocations or phrases |
