@@ -85,16 +85,24 @@ def format_users_list(users: list[dict], static_ids: set[int]) -> str:
 def _extract_first_translation(full_response: str) -> str:
     """
     Pull the first meaningful translation word/phrase from the Gemini response.
-    Falls back to the first non-empty line if parsing fails.
+    Falls back to "…" if parsing fails.
     """
     for line in full_response.splitlines():
         line = line.strip()
-        if not line:
-            continue
-        # Strip markdown-style bold/bullet characters
-        line = line.lstrip("*•-#").strip()
-        if line and len(line) < 60:
-            return escape_html(line)
+        if line.startswith(("•", "-", "*")):
+            # A typical line: "• устойчивость (ustoychivost') — stability, resistance"
+            line = line.lstrip("*•-#").strip()
+            # Extract just the Russian word before the transliteration or definition
+            primary_word = line.split(" (")[0].split(" — ")[0].split(" - ")[0].strip()
+            if primary_word:
+                return escape_html(primary_word)
+                
+    # Fallback: return the first non-header line that looks short enough
+    for line in full_response.splitlines():
+        line = line.strip()
+        if line and not line.startswith("🔤") and len(line) < 60:
+            return escape_html(line.lstrip("*•-#").strip())
+            
     return "…"
 
 
