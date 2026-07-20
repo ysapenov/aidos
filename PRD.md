@@ -4,7 +4,7 @@
 
 **Product Name:** Aidos
 **Type:** Telegram Bot
-**Version:** 2.0 (Phase 2)
+**Version:** 2.0 (Phase 2 Complete)
 **Last Updated:** July 3, 2026
 
 ### 1.1 Vision
@@ -103,9 +103,9 @@ For each word, the bot provides:
 | FR-4.4 | Unauthorized users receive an "Access denied" message |
 | FR-4.5 | Whitelist changes persist in the database |
 
-### 2.4 Future Capabilities (Phase 2)
+### 2.4 Future Capabilities (Phase 3)
 
-The following features are planned but **out of scope for Phase 1**:
+The following features are planned but **out of scope for Phase 2**:
 
 - Weather forecasts (`/weather`)
 - Wikipedia summaries (`/wiki`)
@@ -196,7 +196,7 @@ The following features are planned but **out of scope for Phase 1**:
 
 ---
 
-## 7. Out of Scope (Phase 1)
+## 7. Out of Scope (Phase 2)
 
 - Multi-language support (only EN → RU)
 - Sentence/paragraph translation

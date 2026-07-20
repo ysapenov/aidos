@@ -5,7 +5,7 @@ handlers/vocabulary.py — Vocabulary command handler.
 import logging
 from telegram import Update
 from telegram.ext import ContextTypes
-from utils.decorators import restricted, send_typing
+from utils.decorators import restricted, send_typing, rate_limit
 from utils.constants import ERROR_GENERIC, WORDS_GENERATING
 from database.models import get_vocabulary_words, save_vocabulary_entry
 from services.vocabulary_service import generate_vocabulary, format_vocabulary_response
@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 @restricted
 @send_typing
+@rate_limit(3.0)
 async def words(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /words command — generate advanced vocabulary."""
     user = update.effective_user
@@ -36,7 +37,7 @@ async def words(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         exclude_words = await get_vocabulary_words(user.id)
 
         # Generate vocabulary
-        vocab_data = generate_vocabulary(topic, exclude_words)
+        vocab_data = await generate_vocabulary(topic, exclude_words)
 
         # Save to history
         for w in vocab_data.get("words", []):

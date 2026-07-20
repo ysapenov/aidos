@@ -16,15 +16,41 @@ def escape_html(text: str) -> str:
     return html.escape(text)
 
 
-def format_translation(word: str, translation_text: str) -> str:
+def format_translation(word: str, data: dict) -> str:
     """
-    Wrap the Gemini translation response with a header for Telegram display.
-
-    The translation_text is already formatted by Gemini using our prompt.
-    We add a styled header on top.
+    Format the JSON translation dictionary for Telegram display.
     """
     safe_word = escape_html(word.lower())
-    return f"{EMOJI_BOOK} <b>{safe_word}</b>\n" f"{'─' * 30}\n" f"{translation_text}"
+    
+    if "error" in data:
+        return f"{EMOJI_WARNING} <b>{safe_word}</b>: {escape_html(data['error'])}"
+
+    lines = [f"{EMOJI_BOOK} <b>{safe_word}</b>", f"{'─' * 30}"]
+    
+    if data.get("pronunciation"):
+        lines.append(f"🗣️ Pronunciation: {escape_html(data['pronunciation'])}")
+        
+    lines.append("\n🔤 Translations:")
+    for t in data.get("translations", []):
+        lines.append(f"• {escape_html(t.get('russian', ''))} — {escape_html(t.get('meaning', ''))}")
+        
+    if data.get("kazakh"):
+        lines.append(f"\n{EMOJI_FLAG_KZ} Kazakh: {escape_html(data['kazakh'])}")
+        
+    if data.get("part_of_speech"):
+        lines.append(f"📝 Part of speech: {escape_html(data['part_of_speech'])}")
+        
+    if data.get("examples"):
+        lines.append("\n💬 Examples:")
+        for i, ex in enumerate(data["examples"], start=1):
+            lines.append(f"{i}. 🇬🇧 {escape_html(ex.get('english', ''))}\n   🇷🇺 {escape_html(ex.get('russian', ''))}")
+            
+    if data.get("collocations"):
+        lines.append("\n🔗 Collocations:")
+        for c in data["collocations"]:
+            lines.append(f"• {escape_html(c.get('english', ''))} — {escape_html(c.get('russian', ''))}")
+
+    return "\n".join(lines)
 
 
 def format_history(entries: list[dict], total: int) -> str:
@@ -42,9 +68,19 @@ def format_history(entries: list[dict], total: int) -> str:
     for i, entry in enumerate(entries, start=1):
         word = escape_html(entry["word"])
 
-        # Extract just the first Russian translation line from the full response
-        # (the full Gemini response is stored; we show a short summary in history)
-        first_line = _extract_first_translation(entry["translation"])
+        import json
+        try:
+            translation_data = json.loads(entry["translation"])
+            if "translations" in translation_data and translation_data["translations"]:
+                first_line = escape_html(translation_data["translations"][0].get("russian", "…"))
+            elif "error" in translation_data:
+                first_line = "Error"
+            else:
+                first_line = "…"
+        except json.JSONDecodeError:
+            # Fallback for old history entries
+            first_line = _extract_first_translation(entry["translation"])
+            
         date_str = _format_date(entry["created_at"])
 
         kazakh = ""
@@ -114,6 +150,6 @@ def _format_date(created_at: str) -> str:
     """Format a SQLite timestamp string to a human-readable short date."""
     try:
         dt = datetime.fromisoformat(created_at)
-        return dt.strftime("%b %-d")  # e.g. "Jul 3"
+        return dt.strftime("%b %d").replace(" 0", " ")  # e.g. "Jul 3" (cross-platform)
     except Exception:
         return created_at[:10]  # fallback to YYYY-MM-DD

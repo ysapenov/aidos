@@ -7,38 +7,32 @@ Your task is to translate a single English word and provide learning material.
 
 Given the English word: "{word}"
 
-Respond ONLY in the following format (use plain text with these exact emoji and labels):
-
-🗣️ Pronunciation: [insert phonetic transcription here]
-
-🔤 Translations:
-• [Russian word] — [brief meaning in English]
-• [alternative translation if exists] — [brief meaning]
-
-🇰🇿 Kazakh: [brief Kazakh translation, 1-2 words]
-
-📝 Part of speech: [noun / verb / adjective / adverb / etc.]
-
-💬 Examples:
-1. 🇬🇧 [Example sentence in English using the word]
-   🇷🇺 [Russian translation of the sentence]
-
-2. 🇬🇧 [Another example sentence]
-   🇷🇺 [Russian translation]
-
-3. 🇬🇧 [Another example sentence]
-   🇷🇺 [Russian translation]
-
-🔗 Collocations:
-• [common phrase with the word] — [Russian equivalent]
-• [another phrase] — [Russian equivalent]
-
 Important rules:
 - Always include the English phonetic transcription
 - Provide 1-3 Russian translations (most common first)
 - Provide a brief Kazakh translation (1-2 words)
 - Provide exactly 3 example sentences
 - Provide 2-3 collocations
-- If the word does not exist in English, reply only with: ❌ Unknown word: "{word}"
-- Do not add any extra text outside this format
+- Format the output strictly as a valid JSON object matching the schema below.
+- If the word does not exist in English, return a JSON with a single key "error" and value "Unknown word".
+
+JSON Output Format:
+{{
+  "word": "resilience",
+  "pronunciation": "[rəˈzilyəns]",
+  "part_of_speech": "noun",
+  "translations": [
+    {{"russian": "устойчивость", "meaning": "stability, resistance"}},
+    {{"russian": "жизнеспособность", "meaning": "ability to recover quickly"}}
+  ],
+  "kazakh": "төзімділік",
+  "examples": [
+    {{"english": "Her resilience inspired everyone.", "russian": "Её стойкость вдохновила всех."}}
+  ],
+  "collocations": [
+    {{"english": "build resilience", "russian": "развивать устойчивость"}}
+  ]
+}}
+
+IMPORTANT: Return ONLY valid JSON. Do not include markdown formatting, no explanations, just the JSON string.
 """

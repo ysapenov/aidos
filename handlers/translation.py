@@ -17,7 +17,7 @@ from telegram.ext import (
 )
 from services.gemini_service import translate_word as gemini_translate
 from database.models import add_translation
-from utils.decorators import restricted, send_typing
+from utils.decorators import restricted, send_typing, rate_limit
 from utils.formatting import format_translation
 from utils.constants import (
     TRANSLATE_MODE_START,
@@ -45,6 +45,7 @@ async def start_translate(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 
 @send_typing
+@rate_limit(3.0, default_return=TRANSLATING)
 async def handle_word(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
     Process a word sent by the user while in TRANSLATING state.
@@ -71,29 +72,26 @@ async def handle_word(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     logger.info(f"User {user.id} translating: '{word}'")
 
     try:
-        translation_text = await gemini_translate(word)
+        translation_data = await gemini_translate(word)
     except Exception as e:
         logger.error(f"Gemini API error for word '{word}': {e}")
         await update.effective_message.reply_text(ERROR_GENERIC, parse_mode="HTML")
         return TRANSLATING  # Stay in mode — let user try again
 
     # Format and send translation
-    message = format_translation(word, translation_text)
+    message = format_translation(word, translation_data)
     await update.effective_message.reply_text(message, parse_mode="HTML")
 
     # Extract Kazakh translation for DB storage
-    kazakh = None
-    for line in translation_text.splitlines():
-        if line.startswith("🇰🇿 Kazakh:"):
-            kazakh = line.replace("🇰🇿 Kazakh:", "").strip()
-            break
+    kazakh = translation_data.get("kazakh")
 
     # Persist to history (best-effort — don't crash if DB fails)
+    import json
     try:
         await add_translation(
             user_id=user.id,
             word=word,
-            translation=translation_text,
+            translation=json.dumps(translation_data, ensure_ascii=False),
             kazakh_translation=kazakh,
         )
     except Exception as e:

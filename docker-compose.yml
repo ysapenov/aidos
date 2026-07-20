@@ -19,4 +19,4 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ~/.docker/config.json:/config.json:ro # Allows watchtower to use your docker login credentials
-    command: --interval 60 aidos-bot # Checks for updates every 60 seconds
+    command: --interval 300 aidos-bot # Checks for updates every 5 minutes

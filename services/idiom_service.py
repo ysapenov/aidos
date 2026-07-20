@@ -11,7 +11,7 @@ from utils.constants import EMOJI_FLAG_RU, EMOJI_FLAG_KZ
 logger = logging.getLogger(__name__)
 
 
-def generate_idiom(exclude_idioms: list[str]) -> dict:
+async def generate_idiom(exclude_idioms: list[str]) -> dict:
     """
     Generate a daily idiom using Gemini.
     """
@@ -20,7 +20,7 @@ def generate_idiom(exclude_idioms: list[str]) -> dict:
     prompt = IDIOM_PROMPT.format(exclude_idioms=exclude_str)
 
     logger.info(f"Generating idiom. Excluded idioms: {len(exclude_idioms)}")
-    raw_response = generate_content(prompt)
+    raw_response = await generate_content(prompt)
     return parse_json_response(raw_response)
 
 

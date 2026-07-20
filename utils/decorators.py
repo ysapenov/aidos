@@ -83,3 +83,38 @@ def send_typing(func):
         return await func(update, context, *args, **kwargs)
 
     return wrapper
+
+
+import time
+
+_user_last_request: dict[int, float] = {}
+
+def rate_limit(limit_seconds: float = 3.0, default_return=None):
+    """
+    Decorator that limits how often a user can trigger a handler.
+    """
+    def decorator(func):
+        @functools.wraps(func)
+        async def wrapper(
+            update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs
+        ):
+            user = update.effective_user
+            if not user:
+                return await func(update, context, *args, **kwargs)
+                
+            now = time.time()
+            last_req = _user_last_request.get(user.id, 0.0)
+            
+            if now - last_req < limit_seconds:
+                logger.warning(f"User {user.id} rate limited.")
+                if update.effective_message:
+                    await update.effective_message.reply_text(
+                        "⚠️ Please wait a few seconds before requesting again."
+                    )
+                return default_return
+                
+            _user_last_request[user.id] = now
+            return await func(update, context, *args, **kwargs)
+            
+        return wrapper
+    return decorator

@@ -18,7 +18,7 @@ from utils.constants import (
 logger = logging.getLogger(__name__)
 
 
-def generate_vocabulary(topic: Optional[str], exclude_words: list[str]) -> dict:
+async def generate_vocabulary(topic: Optional[str], exclude_words: list[str]) -> dict:
     """
     Generate vocabulary using Gemini.
     """
@@ -36,7 +36,7 @@ def generate_vocabulary(topic: Optional[str], exclude_words: list[str]) -> dict:
     logger.info(
         f"Generating vocabulary. Topic: {topic or 'random'}, Excluded words: {len(exclude_words)}"
     )
-    raw_response = generate_content(prompt)
+    raw_response = await generate_content(prompt)
     return parse_json_response(raw_response)
 
 

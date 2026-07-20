@@ -24,6 +24,13 @@ data/
 *.log
 logs/
 
+# Coverage and Tests
+.coverage
+.pytest_cache/
+
+# Misc
+diff.txt
+
 # IDE
 .idea/
 .vscode/

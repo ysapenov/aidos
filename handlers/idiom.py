@@ -71,7 +71,7 @@ async def send_daily_idiom(context: ContextTypes.DEFAULT_TYPE) -> None:
         exclude_idioms = await get_sent_idioms()
 
         # Generate idiom
-        idiom_data = generate_idiom(exclude_idioms)
+        idiom_data = await generate_idiom(exclude_idioms)
 
         # Save to history
         await save_idiom(
