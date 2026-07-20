@@ -5,7 +5,11 @@ handlers/admin.py — Admin commands for user management.
 import logging
 from telegram import Update
 from telegram.ext import ContextTypes
-from database.models import add_allowed_user, remove_allowed_user, list_allowed_users
+from database.models import (
+    add_allowed_user,
+    remove_allowed_user,
+    list_allowed_users,
+)
 from utils.decorators import admin_only
 from utils.formatting import format_users_list
 from config import settings
@@ -35,7 +39,7 @@ async def allow_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
     # Add to DB (we don't have their username yet, it will update on their first /start)
     await add_allowed_user(user_id, username=None, first_name=None)
-    
+
     await update.message.reply_text(
         f"{EMOJI_SUCCESS} User <code>{user_id}</code> has been granted access.",
         parse_mode="HTML",
@@ -86,6 +90,6 @@ async def list_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     """Handle /users — list all allowed users."""
     db_users = await list_allowed_users()
     static_users = settings.allowed_user_ids
-    
+
     message = format_users_list(db_users, static_users)
     await update.message.reply_text(message, parse_mode="HTML")

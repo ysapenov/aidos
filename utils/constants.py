@@ -3,23 +3,25 @@ utils/constants.py — Static text, emoji constants, and menu layouts.
 """
 
 # ─── Emojis ────────────────────────────────────────────────────────────────────
-EMOJI_BOOK       = "📚"
-EMOJI_TRANSLATE  = "🔤"
-EMOJI_EXAMPLES   = "💬"
-EMOJI_SPEECH     = "📝"
-EMOJI_LINK       = "🔗"
-EMOJI_FLAG_GB    = "🇬🇧"
-EMOJI_FLAG_RU    = "🇷🇺"
-EMOJI_HISTORY    = "📖"
-EMOJI_SUCCESS    = "✅"
-EMOJI_WARNING    = "⚠️"
-EMOJI_ERROR      = "❌"
-EMOJI_LOCK       = "🔒"
-EMOJI_KEY        = "🔑"
-EMOJI_USERS      = "👥"
-EMOJI_ROBOT      = "🤖"
-EMOJI_WAVE       = "👋"
-EMOJI_ARROW      = "→"
+EMOJI_BOOK = "📚"
+EMOJI_TRANSLATE = "🔤"
+EMOJI_EXAMPLES = "💬"
+EMOJI_SPEECH = "📝"
+EMOJI_LINK = "🔗"
+EMOJI_FLAG_GB = "🇬🇧"
+EMOJI_FLAG_RU = "🇷🇺"
+EMOJI_HISTORY = "📖"
+EMOJI_SUCCESS = "✅"
+EMOJI_WARNING = "⚠️"
+EMOJI_ERROR = "❌"
+EMOJI_LOCK = "🔒"
+EMOJI_KEY = "🔑"
+EMOJI_USERS = "👥"
+EMOJI_ROBOT = "🤖"
+EMOJI_WAVE = "👋"
+EMOJI_ARROW = "→"
+EMOJI_FLAG_KZ = "🇰🇿"
+EMOJI_TARGET = "🎯"
 
 # ─── Bot messages ──────────────────────────────────────────────────────────────
 
@@ -27,7 +29,9 @@ WELCOME_MESSAGE = (
     f"{EMOJI_WAVE} <b>Hello, {{name}}! Welcome to Aidos.</b>\n\n"
     "I'm your personal English → Russian vocabulary assistant.\n\n"
     f"<b>What I can do:</b>\n"
-    f"• {EMOJI_TRANSLATE} Translate English words to Russian with examples\n"
+    f"• {EMOJI_TRANSLATE} Translate English words to Russian & Kazakh\n"
+    f"• {EMOJI_BOOK} Generate advanced vocabulary by topic (/words)\n"
+    f"• {EMOJI_TARGET} Send a daily idiom (if subscribed)\n"
     f"• {EMOJI_HISTORY} Keep your translation history\n\n"
     f"Type /translate to start a translation session.\n"
     f"Type /help to see all commands."
@@ -38,6 +42,10 @@ HELP_MESSAGE = (
     "<b>Translation</b>\n"
     "  /translate — Enter translate mode\n"
     "  /stop — Exit translate mode\n\n"
+    "<b>Vocabulary & Idioms</b>\n"
+    "  /words [topic] — Generate advanced words & expressions\n"
+    "  /subscribe — Get a daily idiom\n"
+    "  /unsubscribe — Stop daily idioms\n\n"
     "<b>History</b>\n"
     "  /history — View your last 20 translations\n"
     "  /history clear — Clear your history\n\n"
@@ -67,28 +75,26 @@ TRANSLATE_MULTI_WORD_ERROR = (
     "I only translate single English words right now."
 )
 
-TRANSLATE_EMPTY_ERROR = (
-    f"{EMOJI_WARNING} Please send a word to translate."
-)
+TRANSLATE_EMPTY_ERROR = f"{EMOJI_WARNING} Please send a word to translate."
 
 ACCESS_DENIED = (
     f"{EMOJI_LOCK} <b>Access denied.</b>\n\n"
     "This bot is private. Contact the admin to request access."
 )
 
-ADMIN_ONLY = (
-    f"{EMOJI_LOCK} This command is for admins only."
-)
+ADMIN_ONLY = f"{EMOJI_LOCK} This command is for admins only."
 
-ERROR_GENERIC = (
-    f"{EMOJI_ERROR} Something went wrong. Please try again in a moment."
-)
+ERROR_GENERIC = f"{EMOJI_ERROR} Something went wrong. Please try again in a moment."
 
 HISTORY_EMPTY = (
     f"{EMOJI_HISTORY} You haven't translated any words yet.\n\n"
     "Use /translate to start a session!"
 )
 
-HISTORY_CLEARED = (
-    f"{EMOJI_SUCCESS} Your translation history has been cleared."
-)
+HISTORY_CLEARED = f"{EMOJI_SUCCESS} Your translation history has been cleared."
+
+WORDS_GENERATING = f"{EMOJI_BOOK} <b>Generating vocabulary...</b>"
+SUBSCRIBE_SUCCESS = f"{EMOJI_SUCCESS} You're subscribed to the daily idiom! You'll receive one every day at 14:00 UTC."
+SUBSCRIBE_ALREADY = f"{EMOJI_TARGET} You are already subscribed to the daily idiom."
+UNSUBSCRIBE_SUCCESS = f"{EMOJI_SUCCESS} You've been unsubscribed from the daily idiom."
+UNSUBSCRIBE_NOT_FOUND = f"{EMOJI_WARNING} You weren't subscribed to the daily idiom."

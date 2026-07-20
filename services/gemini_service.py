@@ -5,63 +5,27 @@ Uses the new `google-genai` SDK (google-generativeai is EOL since Nov 2025).
 Provides translate_word() for EN→RU translation with examples.
 """
 
+import json
 import logging
 from google import genai
 from config import settings
+from prompts.translation import TRANSLATION_PROMPT
 
 logger = logging.getLogger(__name__)
 
 # ─── Gemini client (module-level singleton) ────────────────────────────────────
 _client = genai.Client(api_key=settings.gemini_api_key)
 
-_TRANSLATION_PROMPT = """You are a professional English-Russian translator and language tutor. \
-Your task is to translate a single English word into Russian and provide learning material.
-
-Given the English word: "{word}"
-
-Respond ONLY in the following format (use plain text with these exact emoji and labels):
-
-🗣️ Pronunciation: [insert phonetic transcription here]
-
-🔤 Translations:
-• [Russian word] — [brief meaning in English]
-• [alternative translation if exists] — [brief meaning]
-
-📝 Part of speech: [noun / verb / adjective / adverb / etc.]
-
-💬 Examples:
-1. 🇬🇧 [Example sentence in English using the word]
-   🇷🇺 [Russian translation of the sentence]
-
-2. 🇬🇧 [Another example sentence]
-   🇷🇺 [Russian translation]
-
-3. 🇬🇧 [Another example sentence]
-   🇷🇺 [Russian translation]
-
-🔗 Collocations:
-• [common phrase with the word] — [Russian equivalent]
-• [another phrase] — [Russian equivalent]
-
-Important rules:
-- Always include the English phonetic transcription
-- Provide 1-3 Russian translations (most common first)
-- Provide exactly 3 example sentences
-- Provide 2-3 collocations
-- If the word does not exist in English, reply only with: ❌ Unknown word: "{word}"
-- Do not add any extra text outside this format
-"""
-
 
 async def translate_word(word: str) -> str:
     """
-    Translate a single English word to Russian using Gemini 2.5 Flash.
+    Translate a single English word to Russian/Kazakh using Gemini 2.5 Flash.
 
     Returns the formatted response string ready for Telegram display.
     Raises an exception on API failure (caller handles it).
     """
     word = word.strip().lower()
-    prompt = _TRANSLATION_PROMPT.format(word=word)
+    prompt = TRANSLATION_PROMPT.format(word=word)
 
     logger.info(f"Translating word: '{word}'")
 
@@ -73,3 +37,35 @@ async def translate_word(word: str) -> str:
     result = response.text.strip()
     logger.debug(f"Gemini response for '{word}': {result[:100]}...")
     return result
+
+
+def generate_content(prompt: str) -> str:
+    """
+    Generic wrapper to generate content using Gemini 2.5 Flash.
+    Returns the raw text response.
+    """
+    response = _client.models.generate_content(
+        model=settings.gemini_model,
+        contents=prompt,
+    )
+    return response.text.strip()
+
+
+def parse_json_response(text: str) -> dict:
+    """
+    Cleans markdown code blocks (```json ... ```) from Gemini output and parses JSON.
+    Raises ValueError on parse failure.
+    """
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        # Split off the first line (e.g. "```json")
+        cleaned = cleaned.split("\n", 1)[1] if "\n" in cleaned else cleaned[3:]
+        if cleaned.endswith("```"):
+            cleaned = cleaned[:-3]
+        cleaned = cleaned.strip()
+
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse JSON from Gemini response: {cleaned}")
+        raise ValueError(f"Invalid JSON response from Gemini: {e}")

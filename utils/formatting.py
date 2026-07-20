@@ -5,8 +5,9 @@ utils/formatting.py — Telegram message formatting helpers.
 import html
 from datetime import datetime
 from utils.constants import (
-    EMOJI_BOOK, EMOJI_HISTORY, EMOJI_ARROW,
-    EMOJI_FLAG_GB, EMOJI_FLAG_RU,
+    EMOJI_BOOK,
+    EMOJI_HISTORY,
+    EMOJI_ARROW,
 )
 
 
@@ -23,11 +24,7 @@ def format_translation(word: str, translation_text: str) -> str:
     We add a styled header on top.
     """
     safe_word = escape_html(word.lower())
-    return (
-        f"{EMOJI_BOOK} <b>{safe_word}</b>\n"
-        f"{'─' * 30}\n"
-        f"{translation_text}"
-    )
+    return f"{EMOJI_BOOK} <b>{safe_word}</b>\n" f"{'─' * 30}\n" f"{translation_text}"
 
 
 def format_history(entries: list[dict], total: int) -> str:
@@ -50,7 +47,13 @@ def format_history(entries: list[dict], total: int) -> str:
         first_line = _extract_first_translation(entry["translation"])
         date_str = _format_date(entry["created_at"])
 
-        lines.append(f"{i}. <b>{word}</b> {EMOJI_ARROW} {first_line} <i>({date_str})</i>")
+        kazakh = ""
+        if entry.get("kazakh_translation"):
+            kazakh = f" = {escape_html(entry['kazakh_translation'])}"
+
+        lines.append(
+            f"{i}. <b>{word}</b> {EMOJI_ARROW} {first_line}{kazakh} <i>({date_str})</i>"
+        )
 
     lines.append(f"\n<i>Total: {total} word(s) translated</i>")
     return "\n".join(lines)
@@ -82,6 +85,7 @@ def format_users_list(users: list[dict], static_ids: set[int]) -> str:
 
 # ─── Private helpers ──────────────────────────────────────────────────────────
 
+
 def _extract_first_translation(full_response: str) -> str:
     """
     Pull the first meaningful translation word/phrase from the Gemini response.
@@ -96,13 +100,13 @@ def _extract_first_translation(full_response: str) -> str:
             primary_word = line.split(" (")[0].split(" — ")[0].split(" - ")[0].strip()
             if primary_word:
                 return escape_html(primary_word)
-                
+
     # Fallback: return the first non-header line that looks short enough
     for line in full_response.splitlines():
         line = line.strip()
         if line and not line.startswith("🔤") and len(line) < 60:
             return escape_html(line.lstrip("*•-#").strip())
-            
+
     return "…"
 
 

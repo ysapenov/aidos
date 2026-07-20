@@ -5,7 +5,9 @@ A personal Telegram bot that translates English words to Russian with contextual
 ## Features
 
 - **Session-based translation** — type `/translate`, then send words one by one
-- **Rich output** — translations, pronunciation, examples, collocations
+- **Rich output** — translations to Russian and Kazakh, pronunciation, examples, collocations
+- **Vocabulary builder** — type `/words` to learn advanced vocabulary
+- **Daily Idioms** — type `/subscribe` to get a daily idiom at 14:00 UTC
 - **Translation history** — review past lookups with `/history`
 - **Access control** — whitelist-only, with admin commands to manage users
 - **Dockerized** — runs on your laptop with a single command
@@ -51,6 +53,9 @@ ADMIN_USER_IDS=your_telegram_user_id
 | `/menu` | Interactive menu |
 | `/translate` | Enter translate mode |
 | `/stop` | Exit translate mode |
+| `/words` | Generate vocabulary |
+| `/subscribe` | Subscribe to daily idioms |
+| `/unsubscribe` | Unsubscribe from idioms |
 | `/history` | View translation history |
 | `/history clear` | Clear history |
 | `/allow <id>` | *(Admin)* Grant user access |
@@ -70,6 +75,7 @@ Bot:  📚 resilience
 
       🔤 Translations:
       • устойчивость — stability, resistance
+      🇰🇿 Kazakh: төзімділік
       📝 Part of speech: noun
       💬 Examples:
       1. 🇬🇧 Her resilience inspired everyone.
@@ -78,6 +84,12 @@ Bot:  📚 resilience
 
 You:  /stop
 Bot:  ✅ Translate mode deactivated.
+
+You:  /words business
+Bot:  🎯 Topic: business
+      📖 Advanced Words
+      meticulous /məˈtɪkjələs/ (adjective, C1)
+      ...
 ```
 
 ## Tech Stack
@@ -103,12 +115,15 @@ docker compose restart          # Restart
 
 ```
 aidos/
-├── main.py              # Entry point
-├── config.py            # Configuration
-├── database/            # SQLite layer
+├── data/                # SQLite database directory (mounted in Docker)
+├── database/            # SQLite schema and models
 ├── handlers/            # Telegram command handlers
 ├── services/            # External API integrations
+├── prompts/             # Gemini prompt templates
 ├── utils/               # Shared utilities
+├── tests/               # Unit tests
+├── main.py              # Entry point
+├── config.py            # Configuration
 ├── Dockerfile
 └── docker-compose.yml
 ```

@@ -5,10 +5,12 @@ Initialises the database, registers handlers, and starts polling.
 """
 
 import logging
+from datetime import time, timezone
 from telegram.ext import Application
 from config import settings
 from database.db import init_db
 from handlers import register_handlers
+from handlers.idiom import send_daily_idiom
 
 # Configure logging
 logging.basicConfig(
@@ -24,12 +26,20 @@ async def on_startup(app: Application) -> None:
     await init_db()
     logger.info("Database initialised.")
 
+    # Schedule daily idiom at 14:00 UTC
+    app.job_queue.run_daily(
+        send_daily_idiom,
+        time=time(hour=14, minute=0, tzinfo=timezone.utc),
+        name="daily_idiom",
+    )
+    logger.info("Daily idiom scheduled for 14:00 UTC.")
+
 
 def main() -> None:
     """Start the bot."""
     # Validate configuration (raises ValueError if required env vars are missing)
     settings.validate()
-    
+
     logger.info("Starting Aidos Bot...")
 
     # Build the application

@@ -55,12 +55,16 @@ async def handle_word(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
 
     # Guard: empty input
     if not text:
-        await update.effective_message.reply_text(TRANSLATE_EMPTY_ERROR, parse_mode="HTML")
+        await update.effective_message.reply_text(
+            TRANSLATE_EMPTY_ERROR, parse_mode="HTML"
+        )
         return TRANSLATING
 
     # Guard: multiple words
     if len(text.split()) > 1:
-        await update.effective_message.reply_text(TRANSLATE_MULTI_WORD_ERROR, parse_mode="HTML")
+        await update.effective_message.reply_text(
+            TRANSLATE_MULTI_WORD_ERROR, parse_mode="HTML"
+        )
         return TRANSLATING
 
     word = text.lower()
@@ -77,12 +81,20 @@ async def handle_word(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     message = format_translation(word, translation_text)
     await update.effective_message.reply_text(message, parse_mode="HTML")
 
+    # Extract Kazakh translation for DB storage
+    kazakh = None
+    for line in translation_text.splitlines():
+        if line.startswith("🇰🇿 Kazakh:"):
+            kazakh = line.replace("🇰🇿 Kazakh:", "").strip()
+            break
+
     # Persist to history (best-effort — don't crash if DB fails)
     try:
         await add_translation(
             user_id=user.id,
             word=word,
             translation=translation_text,
+            kazakh_translation=kazakh,
         )
     except Exception as e:
         logger.error(f"Failed to save translation to history: {e}")

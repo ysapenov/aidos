@@ -4,7 +4,7 @@ handlers/core.py — Core commands: /start, /help, /menu.
 
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ContextTypes, CallbackQueryHandler
+from telegram.ext import ContextTypes
 from database.models import upsert_user
 from utils.decorators import restricted
 from utils.constants import WELCOME_MESSAGE, HELP_MESSAGE
@@ -47,6 +47,10 @@ async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             InlineKeyboardButton("📖 History", callback_data="history"),
         ],
         [
+            InlineKeyboardButton("📚 Words", callback_data="words"),
+            InlineKeyboardButton("🎯 Subscribe", callback_data="subscribe"),
+        ],
+        [
             InlineKeyboardButton("❓ Help", callback_data="help"),
         ],
     ]
@@ -58,14 +62,24 @@ async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         reply_markup=reply_markup,
     )
 
+
 @restricted
 async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle callback queries from the /menu inline keyboard."""
     query = update.callback_query
     await query.answer()
-    
+
     if query.data == "help":
         await help_command(update, context)
     elif query.data == "history":
         from handlers.history import history
+
         await history(update, context)
+    elif query.data == "words":
+        from handlers.vocabulary import words
+
+        await words(update, context)
+    elif query.data == "subscribe":
+        from handlers.idiom import subscribe
+
+        await subscribe(update, context)

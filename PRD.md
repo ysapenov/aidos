@@ -4,7 +4,7 @@
 
 **Product Name:** Aidos
 **Type:** Telegram Bot
-**Version:** 1.0 (Phase 1)
+**Version:** 2.0 (Phase 2)
 **Last Updated:** July 3, 2026
 
 ### 1.1 Vision
@@ -56,6 +56,25 @@ For each word, the bot provides:
 | FR-3.3 | `/history clear` clears the user's translation history |
 | FR-3.4 | History is capped at **1000 entries per user** (oldest entries are deleted when cap is exceeded) |
 
+#### FR-5: Kazakh Translation
+| ID | Requirement |
+|----|-------------|
+| FR-5.1 | All translations include a brief Kazakh translation |
+| FR-5.2 | Kazakh translations are stored in the database |
+
+#### FR-6: Advanced Vocabulary (`/words`)
+| ID | Requirement |
+|----|-------------|
+| FR-6.1 | `/words [topic]` generates 2 advanced words, 1 phrasal verb, 1 natural expression |
+| FR-6.2 | Vocabulary is stored in DB to ensure no repeats |
+
+#### FR-7: Daily Idiom (`/subscribe`)
+| ID | Requirement |
+|----|-------------|
+| FR-7.1 | `/subscribe` opts user into daily idiom delivery at 14:00 UTC |
+| FR-7.2 | Idioms include Kazakh translation and are tracked to avoid repeats |
+| FR-7.3 | `/unsubscribe` opts user out |
+
 ### 2.2 Bot Commands (Phase 1)
 
 | Command | Description |
@@ -65,6 +84,9 @@ For each word, the bot provides:
 | `/menu` | Interactive inline keyboard menu |
 | `/translate` | Enter translate mode |
 | `/stop` | Exit translate mode |
+| `/words` | Generate advanced vocabulary |
+| `/subscribe` | Subscribe to daily idioms |
+| `/unsubscribe` | Unsubscribe from daily idioms |
 | `/history` | View translation history |
 | `/history clear` | Clear translation history |
 | `/allow <user_id>` | *(Admin)* Grant access to a user |

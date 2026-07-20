@@ -6,7 +6,6 @@ and sends a user-friendly message to the chat.
 """
 
 import logging
-import traceback
 from telegram import Update
 from telegram.ext import ContextTypes
 from utils.constants import ERROR_GENERIC
@@ -21,8 +20,6 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     # Try to notify the user
     if isinstance(update, Update) and update.effective_message:
         try:
-            await update.effective_message.reply_text(
-                ERROR_GENERIC, parse_mode="HTML"
-            )
+            await update.effective_message.reply_text(ERROR_GENERIC, parse_mode="HTML")
         except Exception:
             pass  # Don't raise inside an error handler
