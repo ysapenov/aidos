@@ -54,7 +54,9 @@ class Settings:
     )
 
     # History cap per user
-    history_cap: int = 1000
+    history_cap: int = field(
+        default_factory=lambda: int(os.getenv("HISTORY_CAP", "1000"))
+    )
 
     # Logging
     log_level: str = field(
