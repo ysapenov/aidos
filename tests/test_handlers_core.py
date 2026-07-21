@@ -1,10 +1,11 @@
 import pytest
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from handlers.core import start, help_command, menu
 from utils.constants import WELCOME_MESSAGE, HELP_MESSAGE
 
 @pytest.mark.asyncio
-async def test_start_command():
+@patch('utils.decorators.is_user_allowed', new_callable=AsyncMock, return_value=True)
+async def test_start_command(mock_is_user_allowed):
     update = MagicMock()
     update.effective_user.first_name = "User"
     update.effective_message.reply_text = AsyncMock()
@@ -18,7 +19,8 @@ async def test_start_command():
     assert kwargs.get("parse_mode") == "HTML"
 
 @pytest.mark.asyncio
-async def test_help_command():
+@patch('utils.decorators.is_user_allowed', new_callable=AsyncMock, return_value=True)
+async def test_help_command(mock_is_user_allowed):
     update = MagicMock()
     update.effective_message.reply_text = AsyncMock()
     context = MagicMock()
@@ -31,7 +33,8 @@ async def test_help_command():
     assert kwargs.get("parse_mode") == "HTML"
 
 @pytest.mark.asyncio
-async def test_menu_command():
+@patch('utils.decorators.is_user_allowed', new_callable=AsyncMock, return_value=True)
+async def test_menu_command(mock_is_user_allowed):
     update = MagicMock()
     update.effective_message.reply_text = AsyncMock()
     context = MagicMock()

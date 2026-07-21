@@ -27,7 +27,7 @@ def _parse_id_list(env_var: str) -> set[int]:
     return ids
 
 
-@dataclass(frozen=True)
+@dataclass
 class Settings:
     # Telegram
     telegram_token: str = field(

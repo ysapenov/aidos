@@ -14,7 +14,7 @@ def test_settings_validation():
         "HISTORY_CAP": "50"
     }, clear=True):
         settings = Settings()
-        assert settings.telegram_bot_token == "123:test"
+        assert settings.telegram_token == "123:test"
         assert settings.gemini_api_key == "test_key"
         assert settings.allowed_user_ids == {111, 222}
         assert settings.admin_user_ids == {111}
