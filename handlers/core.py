@@ -5,7 +5,7 @@ handlers/core.py — Core commands: /start, /help, /menu.
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-from database.models import upsert_user
+from database.models import upsert_user, is_subscribed
 from utils.decorators import restricted
 from utils.constants import WELCOME_MESSAGE, HELP_MESSAGE
 
@@ -41,14 +41,21 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 @restricted
 async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /menu — show an inline keyboard with quick-access buttons."""
+    user = update.effective_user
+    subscribed = await is_subscribed(user.id)
+    
     keyboard = [
         [
             InlineKeyboardButton("🔤 Translate", callback_data="translate"),
-            InlineKeyboardButton("📖 History", callback_data="history"),
+            InlineKeyboardButton("📚 Words", callback_data="words"),
         ],
         [
-            InlineKeyboardButton("📚 Words", callback_data="words"),
-            InlineKeyboardButton("🎯 Subscribe", callback_data="subscribe"),
+            InlineKeyboardButton("📖 History", callback_data="history"),
+            InlineKeyboardButton("📖 History Words", callback_data="history_words"),
+        ],
+        [
+            InlineKeyboardButton("📖 History Idioms", callback_data="history_idioms"),
+            InlineKeyboardButton("🎯 Unsubscribe" if subscribed else "🎯 Subscribe", callback_data="unsubscribe" if subscribed else "subscribe"),
         ],
         [
             InlineKeyboardButton("❓ Help", callback_data="help"),
@@ -73,13 +80,21 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         await help_command(update, context)
     elif query.data == "history":
         from handlers.history import history
-
+        await history(update, context)
+    elif query.data == "history_words":
+        from handlers.history import history
+        context.args = ["words"]
+        await history(update, context)
+    elif query.data == "history_idioms":
+        from handlers.history import history
+        context.args = ["idioms"]
         await history(update, context)
     elif query.data == "words":
         from handlers.vocabulary import words
-
         await words(update, context)
     elif query.data == "subscribe":
         from handlers.idiom import subscribe
-
         await subscribe(update, context)
+    elif query.data == "unsubscribe":
+        from handlers.idiom import unsubscribe
+        await unsubscribe(update, context)

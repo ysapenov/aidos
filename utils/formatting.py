@@ -107,8 +107,10 @@ def format_vocabulary_history(entries: list[dict]) -> str:
     for i, entry in enumerate(entries, start=1):
         word = escape_html(entry["english_text"])
         rus = escape_html(entry.get("russian_text") or "…")
+        kaz = escape_html(entry.get("kazakh_text") or "")
+        kaz_str = f" = {kaz}" if kaz else ""
         date_str = _format_date(entry["created_at"])
-        lines.append(f"{i}. <b>{word}</b> — {rus} <i>({date_str})</i>")
+        lines.append(f"{i}. <b>{word}</b> — {rus}{kaz_str} <i>({date_str})</i>")
 
     return "\n".join(lines)
 
@@ -122,8 +124,10 @@ def format_idiom_history(entries: list[dict]) -> str:
     for i, entry in enumerate(entries, start=1):
         idiom = escape_html(entry["idiom"])
         rus = escape_html(entry.get("russian_equivalent") or "…")
+        kaz = escape_html(entry.get("kazakh_equivalent") or "")
+        kaz_str = f" = {kaz}" if kaz else ""
         date_str = _format_date(entry["sent_at"])
-        lines.append(f"{i}. <b>{idiom}</b> — {rus} <i>({date_str})</i>")
+        lines.append(f"{i}. <b>{idiom}</b> — {rus}{kaz_str} <i>({date_str})</i>")
 
     return "\n".join(lines)
 

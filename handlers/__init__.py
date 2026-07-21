@@ -7,7 +7,7 @@ Call register_handlers(app) from main.py to wire everything up.
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler
 from handlers.core import start, help_command, menu, menu_callback
 from handlers.translation import build_translation_conversation
-from handlers.history import history
+from handlers.history import history, history_words_command, history_idioms_command
 from handlers.admin import allow_user, revoke_user, list_users
 from handlers.error import error_handler
 from handlers.vocabulary import words
@@ -27,11 +27,13 @@ def register_handlers(app: Application) -> None:
     # Note: The 'translate' callback is captured by the ConversationHandler above,
     # so it does not need to be included in this regex pattern.
     app.add_handler(
-        CallbackQueryHandler(menu_callback, pattern="^(help|history|words|subscribe)$")
+        CallbackQueryHandler(menu_callback, pattern="^(help|history|history_words|history_idioms|words|subscribe|unsubscribe)$")
     )
 
     # ── History & Vocabulary & Idioms ─────────────────────────────────────────
     app.add_handler(CommandHandler("history", history))
+    app.add_handler(CommandHandler("history_words", history_words_command))
+    app.add_handler(CommandHandler("history_idioms", history_idioms_command))
     app.add_handler(CommandHandler("words", words))
     app.add_handler(CommandHandler("subscribe", subscribe))
     app.add_handler(CommandHandler("unsubscribe", unsubscribe))

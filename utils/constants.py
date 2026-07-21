@@ -27,7 +27,7 @@ EMOJI_TARGET = "🎯"
 
 WELCOME_MESSAGE = (
     f"{EMOJI_WAVE} <b>Hello, {{name}}! Welcome to Aidos.</b>\n\n"
-    "I'm your personal English → Russian vocabulary assistant.\n\n"
+    "I'm your personal English → Russian and Kazakh vocabulary assistant.\n\n"
     f"<b>What I can do:</b>\n"
     f"• {EMOJI_TRANSLATE} Translate English words to Russian & Kazakh\n"
     f"• {EMOJI_BOOK} Generate advanced vocabulary by topic (/words)\n"
@@ -48,8 +48,8 @@ HELP_MESSAGE = (
     "  /unsubscribe — Stop daily idioms\n\n"
     "<b>History</b>\n"
     "  /history — View your last 20 translations\n"
-    "  /history words — View generated vocabulary history\n"
-    "  /history idioms — View daily idioms history\n"
+    "  /history_words — View generated vocabulary history\n"
+    "  /history_idioms — View daily idioms history\n"
     "  /history clear — Clear your history\n\n"
     "<b>General</b>\n"
     "  /start — Welcome message\n"
@@ -63,7 +63,7 @@ HELP_MESSAGE = (
 
 TRANSLATE_MODE_START = (
     f"{EMOJI_TRANSLATE} <b>Translate mode activated!</b>\n\n"
-    "Send me any English word and I'll translate it to Russian.\n"
+    "Send me any English word and I'll translate it to Russian and Kazakh.\n"
     f"Type /stop when you're done."
 )
 

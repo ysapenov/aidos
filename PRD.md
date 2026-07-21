@@ -9,7 +9,7 @@
 
 ### 1.1 Vision
 
-Aidos is a personal Telegram AI assistant that helps users learn English vocabulary by providing rich Russian translations with contextual usage examples. The bot operates in an interactive session mode — users enter a translation session, type words one by one, and receive detailed breakdowns instantly.
+Aidos is a personal Telegram AI assistant that helps users learn English vocabulary by providing rich Russian and Kazakh translations with contextual usage examples. The bot operates in an interactive session mode — users enter a translation session, type words one by one, and receive detailed breakdowns instantly.
 
 ### 1.2 Problem Statement
 
@@ -34,7 +34,7 @@ Looking up English words and understanding how to use them in context requires s
 | FR-1.2 | In translate mode, every plain text message is treated as a word to translate |
 | FR-1.3 | `/stop` command exits translate mode |
 | FR-1.4 | Only **single English words** are accepted; multi-word input is rejected with a helpful message |
-| FR-1.5 | Translation direction is always **English → Russian** |
+| FR-1.5 | Translation direction is always **English → Russian and Kazakh** |
 
 #### FR-2: Translation Output
 
@@ -55,8 +55,8 @@ For each word, the bot provides:
 | FR-3.2 | `/history` shows the last 20 translated words with dates |
 | FR-3.3 | `/history clear` clears the user's translation history |
 | FR-3.4 | History is capped at **1000 entries per user** (oldest entries are deleted when cap is exceeded) |
-| FR-3.5 | `/history words` shows the user's recently generated vocabulary lists |
-| FR-3.6 | `/history idioms` shows the recently broadcasted daily idioms |
+| FR-3.5 | `/history_words` shows the user's recently generated vocabulary lists |
+| FR-3.6 | `/history_idioms` shows the recently broadcasted daily idioms |
 
 #### FR-5: Kazakh Translation
 | ID | Requirement |
@@ -90,8 +90,8 @@ For each word, the bot provides:
 | `/subscribe` | Subscribe to daily idioms |
 | `/unsubscribe` | Unsubscribe from daily idioms |
 | `/history` | View translation history |
-| `/history words` | View generated vocabulary history |
-| `/history idioms` | View daily idioms history |
+| `/history_words` | View generated vocabulary history |
+| `/history_idioms` | View daily idioms history |
 | `/history clear` | Clear translation history |
 | `/allow <user_id>` | *(Admin)* Grant access to a user |
 | `/revoke <user_id>` | *(Admin)* Revoke a user's access |
@@ -160,7 +160,7 @@ The following features are planned but **out of scope for Phase 2**:
 
 ### Translation
 
-> **US-1:** As a user, I want to type `/translate` and then send English words one by one, so I can quickly learn their Russian meanings without typing a command prefix each time.
+> **US-1:** As a user, I want to type `/translate` and then send English words one by one, so I can quickly learn their Russian and Kazakh meanings without typing a command prefix each time.
 
 > **US-2:** As a user, I want to see example sentences for each word, so I can understand how the word is used in context.
 

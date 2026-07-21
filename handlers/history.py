@@ -62,3 +62,13 @@ async def _handle_clear_history(update: Update, user_id: int) -> None:
     deleted_count = await clear_history(user_id)
     logger.info("Cleared %s history entries for user %s", deleted_count, user_id)
     await update.effective_message.reply_text(HISTORY_CLEARED, parse_mode="HTML")
+
+@restricted
+async def history_words_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    context.args = ["words"]
+    await history(update, context)
+
+@restricted
+async def history_idioms_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    context.args = ["idioms"]
+    await history(update, context)

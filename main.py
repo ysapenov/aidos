@@ -26,6 +26,24 @@ async def on_startup(app: Application) -> None:
     await init_db()
     logger.info("Database initialised.")
 
+    from telegram import BotCommand
+    commands = [
+        BotCommand("start", "Welcome message"),
+        BotCommand("help", "Show all commands"),
+        BotCommand("menu", "Interactive menu"),
+        BotCommand("translate", "Enter translate mode"),
+        BotCommand("stop", "Exit translate mode"),
+        BotCommand("words", "Generate advanced words"),
+        BotCommand("subscribe", "Get a daily idiom"),
+        BotCommand("unsubscribe", "Stop daily idioms"),
+        BotCommand("history", "View last 20 translations"),
+        BotCommand("history_words", "View vocabulary history"),
+        BotCommand("history_idioms", "View idiom history"),
+        BotCommand("history_clear", "Clear history")
+    ]
+    await app.bot.set_my_commands(commands)
+    logger.info("Bot commands updated.")
+
     # Schedule daily idiom at 14:00 UTC
     app.job_queue.run_daily(
         send_daily_idiom,
