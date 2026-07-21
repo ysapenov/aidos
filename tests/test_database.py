@@ -1,11 +1,12 @@
 import pytest
+import pytest_asyncio
 import os
 from unittest.mock import patch
 from database.db import init_db
 from database.models import upsert_user, is_user_allowed, add_allowed_user
 from config import settings
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def temp_db(tmp_path):
     db_path = tmp_path / "test.db"
     with patch.object(settings, "database_path", str(db_path)):

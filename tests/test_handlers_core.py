@@ -5,7 +5,8 @@ from utils.constants import WELCOME_MESSAGE, HELP_MESSAGE
 
 @pytest.mark.asyncio
 @patch('utils.decorators.is_user_allowed', new_callable=AsyncMock, return_value=True)
-async def test_start_command(mock_is_user_allowed):
+@patch('handlers.core.upsert_user', new_callable=AsyncMock)
+async def test_start_command(mock_upsert_user, mock_is_user_allowed):
     update = MagicMock()
     update.effective_user.first_name = "User"
     update.effective_message.reply_text = AsyncMock()
