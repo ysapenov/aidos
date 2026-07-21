@@ -34,8 +34,9 @@ async def test_help_command(mock_is_user_allowed):
     assert kwargs.get("parse_mode") == "HTML"
 
 @pytest.mark.asyncio
+@patch('handlers.core.is_subscribed', new_callable=AsyncMock, return_value=False)
 @patch('utils.decorators.is_user_allowed', new_callable=AsyncMock, return_value=True)
-async def test_menu_command(mock_is_user_allowed):
+async def test_menu_command(mock_is_user_allowed, mock_is_subscribed):
     update = MagicMock()
     update.effective_message.reply_text = AsyncMock()
     context = MagicMock()
