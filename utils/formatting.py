@@ -10,6 +10,7 @@ from utils.constants import (
     EMOJI_ARROW,
     EMOJI_WARNING,
     EMOJI_FLAG_KZ,
+    EMOJI_TARGET,
 )
 
 
