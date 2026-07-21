@@ -8,6 +8,8 @@ from utils.constants import (
     EMOJI_BOOK,
     EMOJI_HISTORY,
     EMOJI_ARROW,
+    EMOJI_WARNING,
+    EMOJI_FLAG_KZ,
 )
 
 
