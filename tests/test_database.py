@@ -2,7 +2,7 @@ import pytest
 import pytest_asyncio
 import os
 from unittest.mock import patch
-from database.db import init_db
+from database.db import init_db, close_db
 from database.models import upsert_user, is_user_allowed, add_allowed_user
 from config import settings
 
@@ -12,6 +12,7 @@ async def temp_db(tmp_path):
     with patch.object(settings, "database_path", str(db_path)):
         await init_db()
         yield
+        await close_db()
 
 @pytest.mark.asyncio
 async def test_upsert_and_allow_user(temp_db):
