@@ -7,7 +7,7 @@ All functions are async and use aiosqlite.
 import logging
 from typing import Optional
 import aiosqlite
-from database.db import get_db_path, get_db_context
+from database.db import get_db_context
 from config import settings
 
 logger = logging.getLogger(__name__)
