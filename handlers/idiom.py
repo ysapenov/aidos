@@ -39,7 +39,7 @@ async def subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     else:
         await subscribe_user(user.id)
         await update.effective_message.reply_text(SUBSCRIBE_SUCCESS, parse_mode="HTML")
-        logger.info(f"User {user.id} subscribed to daily idioms.")
+        logger.info("User %s subscribed to daily idioms.", user.id)
 
 
 @restricted
@@ -52,7 +52,7 @@ async def unsubscribe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await update.effective_message.reply_text(
             UNSUBSCRIBE_SUCCESS, parse_mode="HTML"
         )
-        logger.info(f"User {user.id} unsubscribed from daily idioms.")
+        logger.info("User %s unsubscribed from daily idioms.", user.id)
     else:
         await update.effective_message.reply_text(
             UNSUBSCRIBE_NOT_FOUND, parse_mode="HTML"
@@ -94,11 +94,11 @@ async def send_daily_idiom(context: ContextTypes.DEFAULT_TYPE) -> None:
                 )
                 success_count += 1
             except Exception as e:
-                logger.error(f"Failed to send idiom to user {user_id}: {e}")
+                logger.error("Failed to send idiom to user %s: %s", user_id, e)
 
         logger.info(
             f"Daily idiom broadcast complete. Sent to {success_count}/{len(subscribers)} users."
         )
 
     except Exception as e:
-        logger.error(f"Error during daily idiom generation/broadcast: {e}")
+        logger.error("Error during daily idiom generation/broadcast: %s", e)

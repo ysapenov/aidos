@@ -7,7 +7,7 @@ All functions are async and use aiosqlite.
 import logging
 from typing import Optional
 import aiosqlite
-from database.db import get_db_path
+from database.db import get_db_path, get_db_context
 from config import settings
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ async def upsert_user(
     telegram_id: int, username: Optional[str], first_name: Optional[str]
 ) -> None:
     """Insert or update a user record. Called on every /start."""
-    async with aiosqlite.connect(get_db_path()) as db:
+    async with get_db_context() as db:
         await db.execute(
             """
             INSERT INTO users (telegram_id, username, first_name, is_allowed)
@@ -41,7 +41,7 @@ async def is_user_allowed(user_id: int) -> bool:
         return True
 
     # Check DB whitelist (users added via /allow command)
-    async with aiosqlite.connect(get_db_path()) as db:
+    async with get_db_context() as db:
         async with db.execute(
             "SELECT is_allowed FROM users WHERE telegram_id = ?", (user_id,)
         ) as cursor:
@@ -53,7 +53,7 @@ async def add_allowed_user(
     telegram_id: int, username: Optional[str], first_name: Optional[str]
 ) -> None:
     """Grant access to a user (admin /allow command). Persists to DB."""
-    async with aiosqlite.connect(get_db_path()) as db:
+    async with get_db_context() as db:
         await db.execute(
             """
             INSERT INTO users (telegram_id, username, first_name, is_allowed)
@@ -66,12 +66,12 @@ async def add_allowed_user(
             (telegram_id, username, first_name),
         )
         await db.commit()
-    logger.info(f"Granted access to user {telegram_id} (@{username})")
+    logger.info("Granted access to user %s (@%s)", telegram_id, username)
 
 
 async def remove_allowed_user(telegram_id: int) -> bool:
     """Revoke access from a user (admin /revoke command). Returns True if user existed."""
-    async with aiosqlite.connect(get_db_path()) as db:
+    async with get_db_context() as db:
         cursor = await db.execute(
             "UPDATE users SET is_allowed = 0 WHERE telegram_id = ?",
             (telegram_id,),
@@ -79,13 +79,13 @@ async def remove_allowed_user(telegram_id: int) -> bool:
         await db.commit()
         affected = cursor.rowcount
 
-    logger.info(f"Revoked access from user {telegram_id}")
+    logger.info("Revoked access from user %s", telegram_id)
     return affected > 0
 
 
 async def list_allowed_users() -> list[dict]:
     """Return all users with is_allowed = 1 (DB only, not static env list)."""
-    async with aiosqlite.connect(get_db_path()) as db:
+    async with get_db_context() as db:
         db.row_factory = aiosqlite.Row
         async with db.execute(
             """
@@ -109,7 +109,7 @@ async def add_translation(
     Save a translation to history and enforce the per-user history cap.
     Oldest entries are deleted if the cap is exceeded.
     """
-    async with aiosqlite.connect(get_db_path()) as db:
+    async with get_db_context() as db:
         # Insert new entry
         await db.execute(
             "INSERT INTO translation_history (user_id, word, translation, kazakh_translation) VALUES (?, ?, ?, ?)",
@@ -135,7 +135,7 @@ async def add_translation(
 
 async def get_history(user_id: int, limit: int = 20) -> list[dict]:
     """Return the most recent `limit` translations for a user."""
-    async with aiosqlite.connect(get_db_path()) as db:
+    async with get_db_context() as db:
         db.row_factory = aiosqlite.Row
         async with db.execute(
             """
@@ -153,7 +153,7 @@ async def get_history(user_id: int, limit: int = 20) -> list[dict]:
 
 async def get_history_count(user_id: int) -> int:
     """Return total number of translations saved for a user."""
-    async with aiosqlite.connect(get_db_path()) as db:
+    async with get_db_context() as db:
         async with db.execute(
             "SELECT COUNT(*) FROM translation_history WHERE user_id = ?",
             (user_id,),
@@ -164,7 +164,7 @@ async def get_history_count(user_id: int) -> int:
 
 async def clear_history(user_id: int) -> int:
     """Delete all translation history for a user. Returns number of rows deleted."""
-    async with aiosqlite.connect(get_db_path()) as db:
+    async with get_db_context() as db:
         cursor = await db.execute(
             "DELETE FROM translation_history WHERE user_id = ?", (user_id,)
         )
@@ -184,7 +184,7 @@ async def save_vocabulary_entry(
     topic: Optional[str] = None,
 ) -> None:
     """Save a generated vocabulary word/phrase to history."""
-    async with aiosqlite.connect(get_db_path()) as db:
+    async with get_db_context() as db:
         await db.execute(
             """
             INSERT INTO vocabulary_history
@@ -198,7 +198,7 @@ async def save_vocabulary_entry(
 
 async def get_vocabulary_words(user_id: int) -> list[str]:
     """Return all previously generated english words/phrases for a user."""
-    async with aiosqlite.connect(get_db_path()) as db:
+    async with get_db_context() as db:
         async with db.execute(
             "SELECT english_text FROM vocabulary_history WHERE user_id = ?", (user_id,)
         ) as cursor:
@@ -215,7 +215,7 @@ async def save_idiom(
     kazakh_equivalent: Optional[str] = None,
 ) -> None:
     """Save a sent daily idiom to history."""
-    async with aiosqlite.connect(get_db_path()) as db:
+    async with get_db_context() as db:
         await db.execute(
             """
             INSERT INTO idiom_history (idiom, russian_equivalent, kazakh_equivalent)
@@ -228,7 +228,7 @@ async def save_idiom(
 
 async def get_sent_idioms() -> list[str]:
     """Return all previously sent idioms."""
-    async with aiosqlite.connect(get_db_path()) as db:
+    async with get_db_context() as db:
         async with db.execute("SELECT idiom FROM idiom_history") as cursor:
             rows = await cursor.fetchall()
             return [row[0] for row in rows]
@@ -239,7 +239,7 @@ async def get_sent_idioms() -> list[str]:
 
 async def subscribe_user(user_id: int) -> None:
     """Subscribe a user to the daily idiom (ignores if already subscribed)."""
-    async with aiosqlite.connect(get_db_path()) as db:
+    async with get_db_context() as db:
         await db.execute(
             "INSERT OR IGNORE INTO idiom_subscribers (user_id) VALUES (?)", (user_id,)
         )
@@ -248,7 +248,7 @@ async def subscribe_user(user_id: int) -> None:
 
 async def unsubscribe_user(user_id: int) -> bool:
     """Unsubscribe a user from the daily idiom. Returns True if affected."""
-    async with aiosqlite.connect(get_db_path()) as db:
+    async with get_db_context() as db:
         cursor = await db.execute(
             "DELETE FROM idiom_subscribers WHERE user_id = ?", (user_id,)
         )
@@ -258,7 +258,7 @@ async def unsubscribe_user(user_id: int) -> bool:
 
 async def is_subscribed(user_id: int) -> bool:
     """Check if a user is subscribed to the daily idiom."""
-    async with aiosqlite.connect(get_db_path()) as db:
+    async with get_db_context() as db:
         async with db.execute(
             "SELECT 1 FROM idiom_subscribers WHERE user_id = ?", (user_id,)
         ) as cursor:
@@ -268,7 +268,7 @@ async def is_subscribed(user_id: int) -> bool:
 
 async def get_subscribed_user_ids() -> list[int]:
     """Return list of all subscribed user IDs."""
-    async with aiosqlite.connect(get_db_path()) as db:
+    async with get_db_context() as db:
         async with db.execute("SELECT user_id FROM idiom_subscribers") as cursor:
             rows = await cursor.fetchall()
             return [row[0] for row in rows]

@@ -38,5 +38,5 @@ async def history(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def _handle_clear_history(update: Update, user_id: int) -> None:
     """Helper to clear history and notify the user."""
     deleted_count = await clear_history(user_id)
-    logger.info(f"Cleared {deleted_count} history entries for user {user_id}")
+    logger.info("Cleared %s history entries for user %s", deleted_count, user_id)
     await update.effective_message.reply_text(HISTORY_CLEARED, parse_mode="HTML")

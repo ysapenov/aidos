@@ -75,5 +75,5 @@ async def words(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await processing_msg.edit_text(response_text, parse_mode="HTML")
 
     except Exception as e:
-        logger.error(f"Error generating vocabulary for user {user.id}: {e}")
+        logger.error("Error generating vocabulary for user %s: %s", user.id, e)
         await processing_msg.edit_text(ERROR_GENERIC, parse_mode="HTML")

@@ -24,6 +24,8 @@ def register_handlers(app: Application) -> None:
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("menu", menu))
+    # Note: The 'translate' callback is captured by the ConversationHandler above,
+    # so it does not need to be included in this regex pattern.
     app.add_handler(
         CallbackQueryHandler(menu_callback, pattern="^(help|history|words|subscribe)$")
     )

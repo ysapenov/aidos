@@ -29,7 +29,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         WELCOME_MESSAGE.format(name=name),
         parse_mode="HTML",
     )
-    logger.info(f"User {user.id} (@{user.username}) started the bot.")
+    logger.info("User %s (@%s) started the bot.", user.id, user.username)
 
 
 @restricted

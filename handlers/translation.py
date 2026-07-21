@@ -39,7 +39,7 @@ async def start_translate(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     user = update.effective_user
     if update.callback_query:
         await update.callback_query.answer()
-    logger.info(f"User {user.id} entered translate mode.")
+    logger.info("User %s entered translate mode.", user.id)
     await update.effective_message.reply_text(TRANSLATE_MODE_START, parse_mode="HTML")
     return TRANSLATING
 
@@ -69,12 +69,12 @@ async def handle_word(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         return TRANSLATING
 
     word = text.lower()
-    logger.info(f"User {user.id} translating: '{word}'")
+    logger.info("User %s translating: '%s'", user.id, word)
 
     try:
         translation_data = await gemini_translate(word)
     except Exception as e:
-        logger.error(f"Gemini API error for word '{word}': {e}")
+        logger.error("Gemini API error for word '%s': %s", word, e)
         await update.effective_message.reply_text(ERROR_GENERIC, parse_mode="HTML")
         return TRANSLATING  # Stay in mode — let user try again
 
@@ -95,7 +95,7 @@ async def handle_word(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
             kazakh_translation=kazakh,
         )
     except Exception as e:
-        logger.error(f"Failed to save translation to history: {e}")
+        logger.error("Failed to save translation to history: %s", e)
 
     return TRANSLATING
 
@@ -103,7 +103,7 @@ async def handle_word(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
 async def end_translate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Exit point: /stop or /cancel — deactivate translate mode."""
     user = update.effective_user
-    logger.info(f"User {user.id} exited translate mode.")
+    logger.info("User %s exited translate mode.", user.id)
     await update.effective_message.reply_text(TRANSLATE_MODE_END, parse_mode="HTML")
     return ConversationHandler.END
 

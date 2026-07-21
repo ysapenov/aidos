@@ -19,7 +19,7 @@ async def generate_idiom(exclude_idioms: list[str]) -> dict:
 
     prompt = IDIOM_PROMPT.format(exclude_idioms=exclude_str)
 
-    logger.info(f"Generating idiom. Excluded idioms: {len(exclude_idioms)}")
+    logger.info("Generating idiom. Excluded idioms: %s", len(exclude_idioms))
     raw_response = await generate_content(prompt)
     return parse_json_response(raw_response)
 

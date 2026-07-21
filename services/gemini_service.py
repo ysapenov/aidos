@@ -34,7 +34,7 @@ async def translate_word(word: str) -> dict:
     word = word.strip().lower()
     prompt = TRANSLATION_PROMPT.format(word=word)
 
-    logger.info(f"Translating word: '{word}'")
+    logger.info("Translating word: '%s'", word)
 
     response = await asyncio.to_thread(
         _get_client().models.generate_content,
@@ -43,7 +43,7 @@ async def translate_word(word: str) -> dict:
     )
 
     result = response.text.strip()
-    logger.debug(f"Gemini response for '{word}': {result[:100]}...")
+    logger.debug("Gemini response for '%s': %s...", word, result[:100])
     
     # Needs to import parse_json_response but we can define it later in the file.
     # Oh wait, parse_json_response is defined at the bottom.
@@ -79,5 +79,5 @@ def parse_json_response(text: str) -> dict:
     try:
         return json.loads(cleaned)
     except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse JSON from Gemini response: {cleaned}")
+        logger.error("Failed to parse JSON from Gemini response: %s", cleaned)
         raise ValueError(f"Invalid JSON response from Gemini: {e}")
