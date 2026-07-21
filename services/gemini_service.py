@@ -6,8 +6,8 @@ Provides translate_word() for EN→RU translation with examples.
 """
 
 import json
+import re
 import logging
-import asyncio
 from google import genai
 from config import settings
 from prompts.translation import TRANSLATION_PROMPT
@@ -36,17 +36,14 @@ async def translate_word(word: str) -> dict:
 
     logger.info("Translating word: '%s'", word)
 
-    response = await asyncio.to_thread(
-        _get_client().models.generate_content,
+    response = await _get_client().aio.models.generate_content(
         model=settings.gemini_model,
         contents=prompt,
     )
 
     result = response.text.strip()
     logger.debug("Gemini response for '%s': %s...", word, result[:100])
-    
-    # Needs to import parse_json_response but we can define it later in the file.
-    # Oh wait, parse_json_response is defined at the bottom.
+
     return parse_json_response(result)
 
 
@@ -55,8 +52,7 @@ async def generate_content(prompt: str) -> str:
     Generic wrapper to generate content using Gemini 2.5 Flash.
     Returns the raw text response.
     """
-    response = await asyncio.to_thread(
-        _get_client().models.generate_content,
+    response = await _get_client().aio.models.generate_content(
         model=settings.gemini_model,
         contents=prompt,
     )
@@ -69,12 +65,10 @@ def parse_json_response(text: str) -> dict:
     Raises ValueError on parse failure.
     """
     cleaned = text.strip()
-    if cleaned.startswith("```"):
-        # Split off the first line (e.g. "```json")
-        cleaned = cleaned.split("\n", 1)[1] if "\n" in cleaned else cleaned[3:]
-        if cleaned.endswith("```"):
-            cleaned = cleaned[:-3]
-        cleaned = cleaned.strip()
+    # Robust stripping of any markdown code fence (```json, ```, ```python, etc.)
+    cleaned = re.sub(r'^```\w*\n?', '', cleaned)
+    cleaned = re.sub(r'\n?```$', '', cleaned)
+    cleaned = cleaned.strip()
 
     try:
         return json.loads(cleaned)

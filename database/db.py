@@ -38,6 +38,9 @@ CREATE INDEX IF NOT EXISTS idx_history_user
 CREATE INDEX IF NOT EXISTS idx_history_created
     ON translation_history(created_at);
 
+CREATE INDEX IF NOT EXISTS idx_history_user_created
+    ON translation_history(user_id, created_at);
+
 CREATE TABLE IF NOT EXISTS vocabulary_history (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id         INTEGER NOT NULL,
@@ -69,28 +72,23 @@ CREATE TABLE IF NOT EXISTS idiom_subscribers (
 """
 
 
-_db_conn = None
-
-async def get_db() -> aiosqlite.Connection:
-    """Return the global database connection, initializing it if necessary."""
-    global _db_conn
-    if _db_conn is None:
-        _db_conn = await aiosqlite.connect(settings.database_path)
-        _db_conn.row_factory = aiosqlite.Row
-    return _db_conn
-
-async def close_db() -> None:
-    """Close the global database connection."""
-    global _db_conn
-    if _db_conn is not None:
-        await _db_conn.close()
-        _db_conn = None
-
 @asynccontextmanager
 async def get_db_context():
-    """Context manager for the global DB connection (does not close it)."""
-    db = await get_db()
-    yield db
+    """Context manager that opens a fresh connection per operation.
+
+    Each caller gets its own connection, avoiding global state and
+    concurrent access issues with SQLite's single-writer limitation.
+    """
+    db = await aiosqlite.connect(
+        settings.database_path,
+        timeout=10.0,
+    )
+    db.row_factory = aiosqlite.Row
+    try:
+        yield db
+    finally:
+        await db.close()
+
 
 async def init_db() -> None:
     """Create the database file and tables if they don't already exist."""
@@ -102,18 +100,18 @@ async def init_db() -> None:
         exist_ok=True,
     )
 
-    db = await get_db()
-    await db.executescript(_SCHEMA)
+    async with get_db_context() as db:
+        await db.executescript(_SCHEMA)
 
-    # Add kazakh_translation column to existing translation_history table
-    try:
-        await db.execute(
-            "ALTER TABLE translation_history ADD COLUMN kazakh_translation TEXT"
-        )
-    except aiosqlite.OperationalError:
-        # Column already exists or other schema error we can ignore
-        pass
+        # Add kazakh_translation column to existing translation_history table
+        try:
+            await db.execute(
+                "ALTER TABLE translation_history ADD COLUMN kazakh_translation TEXT"
+            )
+        except aiosqlite.OperationalError:
+            # Column already exists or other schema error we can ignore
+            pass
 
-    await db.commit()
+        await db.commit()
 
     logger.info("Database initialised at: %s", db_path)

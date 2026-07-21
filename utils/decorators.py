@@ -20,6 +20,9 @@ from utils.constants import ACCESS_DENIED, ADMIN_ONLY
 
 logger = logging.getLogger(__name__)
 
+# Maximum number of user entries to keep in the rate-limit tracker
+_RATE_LIMIT_MAX_USERS = 1000
+
 
 def restricted(func: Callable) -> Callable:
     """
@@ -94,9 +97,8 @@ def send_typing(func: Callable) -> Callable:
     return wrapper
 
 
-import time
-
 _user_last_request: dict[int, float] = {}
+
 
 def rate_limit(limit_seconds: float = 3.0, default_return: Any = None) -> Callable:
     """
@@ -110,10 +112,10 @@ def rate_limit(limit_seconds: float = 3.0, default_return: Any = None) -> Callab
             user = update.effective_user
             if not user:
                 return await func(update, context, *args, **kwargs)
-                
+
             now = time.time()
             last_req = _user_last_request.get(user.id, 0.0)
-            
+
             if now - last_req < limit_seconds:
                 logger.warning("User %s rate limited.", user.id)
                 if update.effective_message:
@@ -121,9 +123,19 @@ def rate_limit(limit_seconds: float = 3.0, default_return: Any = None) -> Callab
                         "⚠️ Please wait a few seconds before requesting again."
                     )
                 return default_return
-                
+
             _user_last_request[user.id] = now
+
+            # Periodically prune stale entries to prevent unbounded growth
+            if len(_user_last_request) > _RATE_LIMIT_MAX_USERS:
+                cutoff = now - limit_seconds
+                stale = [
+                    uid for uid, ts in _user_last_request.items() if ts < cutoff
+                ]
+                for uid in stale:
+                    del _user_last_request[uid]
+
             return await func(update, context, *args, **kwargs)
-            
+
         return wrapper
     return decorator

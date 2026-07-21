@@ -3,6 +3,7 @@ utils/formatting.py — Telegram message formatting helpers.
 """
 
 import html
+import json
 from datetime import datetime
 from utils.constants import (
     EMOJI_BOOK,
@@ -71,7 +72,6 @@ def format_history(entries: list[dict], total: int) -> str:
     for i, entry in enumerate(entries, start=1):
         word = escape_html(entry["word"])
 
-        import json
         try:
             translation_data = json.loads(entry["translation"])
             if "translations" in translation_data and translation_data["translations"]:
