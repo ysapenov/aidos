@@ -5,9 +5,19 @@ handlers/history.py — Translation history commands.
 import logging
 from telegram import Update
 from telegram.ext import ContextTypes
-from database.models import get_history, get_history_count, clear_history
+from database.models import (
+    get_history,
+    get_history_count,
+    clear_history,
+    get_vocabulary_history,
+    get_idiom_history,
+)
 from utils.decorators import restricted
-from utils.formatting import format_history
+from utils.formatting import (
+    format_history,
+    format_vocabulary_history,
+    format_idiom_history,
+)
 from utils.constants import HISTORY_EMPTY, HISTORY_CLEARED
 
 logger = logging.getLogger(__name__)
@@ -15,15 +25,27 @@ logger = logging.getLogger(__name__)
 
 @restricted
 async def history(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle /history — show the user's last 20 translations."""
+    """Handle /history — show the user's last 20 translations or sub-histories."""
     user = update.effective_user
 
-    # Handle /history clear
-    if context.args and context.args[0].lower() == "clear":
-        await _handle_clear_history(update, user.id)
-        return
+    # Handle sub-commands
+    if context.args:
+        arg = context.args[0].lower()
+        if arg == "clear":
+            await _handle_clear_history(update, user.id)
+            return
+        elif arg == "words":
+            entries = await get_vocabulary_history(user.id, limit=20)
+            message = format_vocabulary_history(entries)
+            await update.effective_message.reply_text(message, parse_mode="HTML")
+            return
+        elif arg == "idioms":
+            entries = await get_idiom_history(limit=20)
+            message = format_idiom_history(entries)
+            await update.effective_message.reply_text(message, parse_mode="HTML")
+            return
 
-    # Fetch history
+    # Fetch translation history
     entries = await get_history(user.id, limit=20)
     total_count = await get_history_count(user.id)
 

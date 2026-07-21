@@ -205,6 +205,23 @@ async def get_vocabulary_words(user_id: int) -> list[str]:
             rows = await cursor.fetchall()
             return [row[0] for row in rows]
 
+async def get_vocabulary_history(user_id: int, limit: int = 20) -> list[dict]:
+    """Return the most recent vocabulary generations for a user."""
+    async with get_db_context() as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT entry_type, english_text, russian_text, kazakh_text, topic, created_at
+            FROM vocabulary_history
+            WHERE user_id = ?
+            ORDER BY created_at DESC
+            LIMIT ?
+            """,
+            (user_id, limit),
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
 
 # ─── Idiom history ─────────────────────────────────────────────────────────────
 
@@ -232,6 +249,22 @@ async def get_sent_idioms() -> list[str]:
         async with db.execute("SELECT idiom FROM idiom_history") as cursor:
             rows = await cursor.fetchall()
             return [row[0] for row in rows]
+
+async def get_idiom_history(limit: int = 20) -> list[dict]:
+    """Return the most recent broadcasted idioms."""
+    async with get_db_context() as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT idiom, russian_equivalent, kazakh_equivalent, sent_at
+            FROM idiom_history
+            ORDER BY sent_at DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
 
 
 # ─── Idiom Subscriptions ───────────────────────────────────────────────────────

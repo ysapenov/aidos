@@ -97,6 +97,36 @@ def format_history(entries: list[dict], total: int) -> str:
     return "\n".join(lines)
 
 
+def format_vocabulary_history(entries: list[dict]) -> str:
+    """Format the vocabulary history list for Telegram display."""
+    if not entries:
+        return f"{EMOJI_HISTORY} You haven't generated any vocabulary yet."
+
+    lines = [f"{EMOJI_BOOK} <b>Your Vocabulary History</b>\n"]
+    for i, entry in enumerate(entries, start=1):
+        word = escape_html(entry["english_text"])
+        rus = escape_html(entry.get("russian_text") or "…")
+        date_str = _format_date(entry["created_at"])
+        lines.append(f"{i}. <b>{word}</b> — {rus} <i>({date_str})</i>")
+
+    return "\n".join(lines)
+
+
+def format_idiom_history(entries: list[dict]) -> str:
+    """Format the idiom history list for Telegram display."""
+    if not entries:
+        return f"{EMOJI_HISTORY} No idioms have been sent yet."
+
+    lines = [f"{EMOJI_TARGET} <b>Recent Daily Idioms</b>\n"]
+    for i, entry in enumerate(entries, start=1):
+        idiom = escape_html(entry["idiom"])
+        rus = escape_html(entry.get("russian_equivalent") or "…")
+        date_str = _format_date(entry["sent_at"])
+        lines.append(f"{i}. <b>{idiom}</b> — {rus} <i>({date_str})</i>")
+
+    return "\n".join(lines)
+
+
 def format_users_list(users: list[dict], static_ids: set[int]) -> str:
     """Format the list of allowed users for the /users admin command."""
     lines = ["👥 <b>Allowed Users</b>\n"]
