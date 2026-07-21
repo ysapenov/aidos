@@ -48,6 +48,8 @@ HELP_MESSAGE = (
     "  /unsubscribe — Stop daily idioms\n\n"
     "<b>History</b>\n"
     "  /history — View your last 20 translations\n"
+    "  /history words — View generated vocabulary history\n"
+    "  /history idioms — View daily idioms history\n"
     "  /history clear — Clear your history\n\n"
     "<b>General</b>\n"
     "  /start — Welcome message\n"

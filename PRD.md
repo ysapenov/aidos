@@ -55,6 +55,8 @@ For each word, the bot provides:
 | FR-3.2 | `/history` shows the last 20 translated words with dates |
 | FR-3.3 | `/history clear` clears the user's translation history |
 | FR-3.4 | History is capped at **1000 entries per user** (oldest entries are deleted when cap is exceeded) |
+| FR-3.5 | `/history words` shows the user's recently generated vocabulary lists |
+| FR-3.6 | `/history idioms` shows the recently broadcasted daily idioms |
 
 #### FR-5: Kazakh Translation
 | ID | Requirement |
@@ -88,6 +90,8 @@ For each word, the bot provides:
 | `/subscribe` | Subscribe to daily idioms |
 | `/unsubscribe` | Unsubscribe from daily idioms |
 | `/history` | View translation history |
+| `/history words` | View generated vocabulary history |
+| `/history idioms` | View daily idioms history |
 | `/history clear` | Clear translation history |
 | `/allow <user_id>` | *(Admin)* Grant access to a user |
 | `/revoke <user_id>` | *(Admin)* Revoke a user's access |

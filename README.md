@@ -57,6 +57,8 @@ ADMIN_USER_IDS=your_telegram_user_id
 | `/subscribe` | Subscribe to daily idioms |
 | `/unsubscribe` | Unsubscribe from idioms |
 | `/history` | View translation history |
+| `/history words` | View generated vocabulary history |
+| `/history idioms`| View daily idioms history |
 | `/history clear` | Clear history |
 | `/allow <id>` | *(Admin)* Grant user access |
 | `/revoke <id>` | *(Admin)* Revoke user access |
