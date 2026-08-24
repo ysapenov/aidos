@@ -37,7 +37,7 @@ class Settings:
     # Google Gemini
     gemini_api_key: str = field(default_factory=lambda: os.getenv("GEMINI_API_KEY", ""))
     gemini_model: str = field(
-        default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-3.7-flash")
+        default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
     )
 
     # Access control
