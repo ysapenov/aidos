@@ -6,7 +6,7 @@ import logging
 from telegram import Update
 from telegram.ext import ContextTypes
 from utils.decorators import restricted, send_typing, rate_limit
-from utils.constants import ERROR_GENERIC, WORDS_GENERATING
+from utils.constants import EMOJI_ERROR, WORDS_GENERATING
 from database.models import get_vocabulary_words, save_vocabulary_entry
 from services.vocabulary_service import generate_vocabulary, format_vocabulary_response
 
@@ -76,4 +76,5 @@ async def words(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     except Exception as e:
         logger.error("Error generating vocabulary for user %s: %s", user.id, e)
-        await processing_msg.edit_text(ERROR_GENERIC, parse_mode="HTML")
+        error_text = f"{EMOJI_ERROR} Error: {e}"
+        await processing_msg.edit_text(error_text, parse_mode=None)

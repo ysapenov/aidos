@@ -24,7 +24,7 @@ from utils.constants import (
     TRANSLATE_MODE_END,
     TRANSLATE_MULTI_WORD_ERROR,
     TRANSLATE_EMPTY_ERROR,
-    ERROR_GENERIC,
+    EMOJI_ERROR,
 )
 
 logger = logging.getLogger(__name__)
@@ -75,7 +75,8 @@ async def handle_word(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         translation_data = await gemini_translate(word)
     except Exception as e:
         logger.error("Gemini API error for word '%s': %s", word, e)
-        await update.effective_message.reply_text(ERROR_GENERIC, parse_mode="HTML")
+        error_text = f"{EMOJI_ERROR} Error: {e}"
+        await update.effective_message.reply_text(error_text, parse_mode=None)
         return TRANSLATING  # Stay in mode — let user try again
 
     # Format and send translation
