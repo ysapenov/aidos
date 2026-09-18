@@ -11,7 +11,7 @@ from handlers.history import history, history_words_command, history_idioms_comm
 from handlers.admin import allow_user, revoke_user, list_users
 from handlers.error import error_handler
 from handlers.vocabulary import words
-from handlers.idiom import subscribe, unsubscribe
+from handlers.idiom import subscribe, unsubscribe, test_idiom, send_idiom
 
 
 def register_handlers(app: Application) -> None:
@@ -42,6 +42,8 @@ def register_handlers(app: Application) -> None:
     app.add_handler(CommandHandler("allow", allow_user))
     app.add_handler(CommandHandler("revoke", revoke_user))
     app.add_handler(CommandHandler("users", list_users))
+    app.add_handler(CommandHandler("test_idiom", test_idiom))
+    app.add_handler(CommandHandler("send_idiom", send_idiom))
 
     # ── Global error handler ──────────────────────────────────────────────────
     app.add_error_handler(error_handler)

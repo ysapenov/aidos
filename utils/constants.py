@@ -55,7 +55,9 @@ HELP_MESSAGE = (
     "<b>Admin only</b>\n"
     "  /allow &lt;user_id&gt; — Grant access to a user\n"
     "  /revoke &lt;user_id&gt; — Revoke a user's access\n"
-    "  /users — List all allowed users"
+    "  /users — List all allowed users\n"
+    "  /test_idiom — Preview idiom generation (admin only)\n"
+    "  /send_idiom — Broadcast daily idiom immediately"
 )
 
 TRANSLATE_MODE_START = (
