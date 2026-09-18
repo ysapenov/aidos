@@ -12,7 +12,12 @@ from utils.constants import (
     EMOJI_WARNING,
     EMOJI_FLAG_KZ,
     EMOJI_TARGET,
+    EMOJI_MIC,
+    EMOJI_NOTE,
+    EMOJI_IDEA,
+    EMOJI_TAG,
 )
+
 
 
 def escape_html(text: str) -> str:
@@ -187,6 +192,174 @@ def _format_date(created_at: str) -> str:
     """Format a SQLite timestamp string to a human-readable short date."""
     try:
         dt = datetime.fromisoformat(created_at)
-        return dt.strftime("%b %d").replace(" 0", " ")  # e.g. "Jul 3" (cross-platform)
+        return dt.strftime("%b %d %H:%M").replace(" 0", " ")  # e.g. "Jul 3 14:30"
     except Exception:
-        return created_at[:10]  # fallback to YYYY-MM-DD
+        return created_at[:16] if len(created_at) >= 16 else created_at
+
+
+CATEGORY_ICONS = {
+    "ideas": "💡",
+    "work": "💼",
+    "personal": "👤",
+    "learning": "📚",
+    "health": "🏃",
+    "to-do": "📋",
+    "todo": "📋",
+    "reflection": "🪞",
+    "other": "📝",
+}
+
+
+def format_journal_card(entry: dict) -> str:
+    """Format a saved journal entry for Telegram display."""
+    category = entry.get("category", "Other")
+    cat_lower = str(category).lower()
+    icon = CATEGORY_ICONS.get(cat_lower, "📝")
+
+    title = escape_html(entry.get("title") or "Untitled Thought")
+    created_at = entry.get("created_at", "")
+    date_str = _format_date(created_at) if created_at else "Just now"
+
+    duration = entry.get("duration_seconds")
+    duration_str = f" • ⏱️ {duration}s" if duration else ""
+
+    lines = [
+        f"{icon} <b>{title}</b>",
+        f"🏷 <i>{escape_html(category)}</i> • 📅 <i>{date_str}{duration_str}</i>",
+    ]
+
+    mood = entry.get("mood")
+    energy = entry.get("energy_level")
+    if mood or energy:
+        mood_str = f"🎭 <i>{escape_html(str(mood).capitalize())}</i>" if mood else ""
+        energy_str = f"⚡ <i>{escape_html(str(energy).capitalize())} energy</i>" if energy else ""
+        combined = " • ".join(filter(None, [mood_str, energy_str]))
+        lines.append(combined)
+
+    lines.append(f"{'─' * 28}")
+
+    summary = entry.get("summary")
+    if summary:
+        lines.append(f"\n<b>Summary:</b>\n{escape_html(summary)}")
+
+
+    # Key points
+    key_points = entry.get("key_points")
+    if isinstance(key_points, str):
+        try:
+            key_points = json.loads(key_points)
+        except Exception:
+            key_points = [key_points] if key_points else []
+    if key_points and isinstance(key_points, list):
+        lines.append("\n<b>Key Points:</b>")
+        for point in key_points:
+            lines.append(f"• {escape_html(str(point))}")
+
+    # Action items
+    action_items = entry.get("action_items")
+    if isinstance(action_items, str):
+        try:
+            action_items = json.loads(action_items)
+        except Exception:
+            action_items = [action_items] if action_items else []
+    if action_items and isinstance(action_items, list):
+        lines.append("\n<b>Action Items:</b>")
+        for item in action_items:
+            lines.append(f"☑ {escape_html(str(item))}")
+
+    # Tags
+    tags = entry.get("tags")
+    if isinstance(tags, str):
+        try:
+            tags = json.loads(tags)
+        except Exception:
+            tags = [t.strip() for t in tags.split(",") if t.strip()]
+    if tags and isinstance(tags, list):
+        tag_line = " ".join(f"#{escape_html(str(t).lstrip('#'))}" for t in tags if t)
+        if tag_line:
+            lines.append(f"\n🏷 {tag_line}")
+
+    # Transcript
+    raw_transcript = entry.get("raw_transcript") or entry.get("clean_transcript")
+    if raw_transcript:
+        lines.append(f"\n💬 <i>Clean transcript:</i>\n\"{escape_html(raw_transcript)}\"")
+
+    return "\n".join(lines)
+
+
+def format_journal_list(entries: list[dict]) -> str:
+    """Format list of recent journal entries."""
+    if not entries:
+        return "<i>No notes found.</i>"
+
+    lines = [f"{EMOJI_NOTE} <b>Your Recent Thoughts</b>", f"{'─' * 28}"]
+    for entry in entries:
+        entry_id = entry.get("id", "")
+        category = entry.get("category", "Other")
+        icon = CATEGORY_ICONS.get(str(category).lower(), "📝")
+        title = escape_html(entry.get("title") or "Untitled Thought")
+        created_at = entry.get("created_at", "")
+        date_str = _format_date(created_at) if created_at else ""
+
+        lines.append(f"{icon} <b>#{entry_id}</b> — {title}")
+        lines.append(f"   🏷 <i>{escape_html(category)}</i> • <i>{date_str}</i>\n")
+
+    lines.append("<i>Type /notes &lt;id&gt; to view details or use the buttons below.</i>")
+    return "\n".join(lines)
+
+
+def format_action_items_list(items: list[dict], show_completed: bool = False) -> str:
+    """Format action items list for /actions command."""
+    if not items:
+        return "<i>No action items found.</i>"
+
+    header = "📋 <b>All Action Items</b>" if show_completed else "📋 <b>Pending Action Items</b>"
+    lines = [header, f"{'─' * 28}"]
+
+    for item in items:
+        is_done = bool(item.get("is_completed"))
+        icon = "✅" if is_done else "⬜"
+        item_id = item.get("id")
+        text = escape_html(item.get("task_text", ""))
+        if is_done:
+            text = f"<s>{text}</s>"
+        lines.append(f"{icon} <b>#{item_id}</b> {text}")
+
+    if not show_completed:
+        lines.append("\n<i>Tap a button below to check off or delete an action item.</i>")
+    return "\n".join(lines)
+
+
+def format_digest(digest: dict, period_name: str = "Weekly Digest") -> str:
+    """Format AI synthesized reflection digest."""
+    total = digest.get("total_notes", 0)
+    lines = [
+        f"📊 <b>{escape_html(period_name)}</b>",
+        f"<i>Thoughts analyzed: {total}</i>",
+        f"{'─' * 28}",
+    ]
+
+    if digest.get("summary"):
+        lines.append(f"\n<b>Executive Summary:</b>\n{escape_html(digest['summary'])}")
+
+    if digest.get("mood_trend"):
+        lines.append(f"\n🎭 <b>Mood & Momentum:</b>\n{escape_html(digest['mood_trend'])}")
+
+    if digest.get("key_insights"):
+        lines.append("\n🌟 <b>Standout Insights:</b>")
+        for ins in digest["key_insights"]:
+            lines.append(f"• {escape_html(str(ins))}")
+
+    if digest.get("action_items"):
+        lines.append("\n🎯 <b>Key Action Items:</b>")
+        for act in digest["action_items"]:
+            lines.append(f"☑ {escape_html(str(act))}")
+
+    if digest.get("recommendations"):
+        lines.append("\n💡 <b>Recommended Focus:</b>")
+        for rec in digest["recommendations"]:
+            lines.append(f"→ {escape_html(str(rec))}")
+
+    return "\n".join(lines)
+
+

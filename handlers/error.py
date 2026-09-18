@@ -7,6 +7,7 @@ and sends a user-friendly message to the chat.
 
 import logging
 from telegram import Update
+from telegram.error import BadRequest
 from telegram.ext import ContextTypes
 from utils.constants import EMOJI_ERROR
 
@@ -15,6 +16,11 @@ logger = logging.getLogger(__name__)
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Log errors and notify the user gracefully."""
+    # Suppress benign Telegram BadRequest when user rapidly double-clicks an inline button
+    if isinstance(context.error, BadRequest) and "Message is not modified" in str(context.error):
+        logger.debug("Suppressed harmless BadRequest: %s", context.error)
+        return
+
     logger.error("Unhandled exception:", exc_info=context.error)
 
     # Try to notify the user
@@ -24,3 +30,4 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
             await update.effective_message.reply_text(error_text, parse_mode=None)
         except Exception:
             pass  # Don't raise inside an error handler
+

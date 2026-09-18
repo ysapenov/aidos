@@ -7,8 +7,10 @@ services:
       - .env
     volumes:
       - ./data:/app/data
+      - ./credentials:/app/credentials:ro
     environment:
       - DATABASE_PATH=/app/data/aidos.db
+
 
   watchtower:
     image: containrrr/watchtower

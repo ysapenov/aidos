@@ -39,6 +39,21 @@ class Settings:
     gemini_model: str = field(
         default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-3.7-flash")
     )
+    journal_model: str = field(
+        default_factory=lambda: os.getenv("JOURNAL_MODEL", "gemini-3.8-flash")
+    )
+
+    # Google Sheets Integration
+    google_sheet_id: str = field(
+        default_factory=lambda: os.getenv("GOOGLE_SHEET_ID", "")
+    )
+    google_sheets_credentials_file: str = field(
+        default_factory=lambda: os.getenv("GOOGLE_SHEETS_CREDENTIALS_FILE", "")
+    )
+    google_sheets_credentials_json: str = field(
+        default_factory=lambda: os.getenv("GOOGLE_SHEETS_CREDENTIALS_JSON", "")
+    )
+
 
     # Access control
     allowed_user_ids: set[int] = field(

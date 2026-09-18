@@ -58,10 +58,16 @@ async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             InlineKeyboardButton("🎯 Unsubscribe" if subscribed else "🎯 Subscribe", callback_data="unsubscribe" if subscribed else "subscribe"),
         ],
         [
+            InlineKeyboardButton("📝 Notes", callback_data="notes"),
+            InlineKeyboardButton("📋 Actions", callback_data="actions"),
+        ],
+        [
+            InlineKeyboardButton("📊 Digest", callback_data="digest"),
             InlineKeyboardButton("❓ Help", callback_data="help"),
         ],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
+
 
     await update.effective_message.reply_text(
         "🤖 <b>Aidos Menu</b>\n\nChoose an option:",
@@ -98,3 +104,14 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     elif query.data == "unsubscribe":
         from handlers.idiom import unsubscribe
         await unsubscribe(update, context)
+    elif query.data == "notes":
+        from handlers.journal import notes_command
+        await notes_command(update, context)
+    elif query.data == "actions":
+        from handlers.actions import actions_command
+        await actions_command(update, context)
+    elif query.data == "digest":
+        from handlers.journal import digest_command
+        await digest_command(update, context)
+
+

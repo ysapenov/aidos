@@ -69,7 +69,51 @@ CREATE TABLE IF NOT EXISTS idiom_subscribers (
     subscribed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(telegram_id)
 );
+
+CREATE TABLE IF NOT EXISTS journal_entries (
+    id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id            INTEGER NOT NULL,
+    title              TEXT NOT NULL,
+    category           TEXT NOT NULL,
+    summary            TEXT NOT NULL,
+    key_points         TEXT,
+    action_items       TEXT,
+    raw_transcript     TEXT NOT NULL,
+    tags               TEXT,
+    language           TEXT,
+    mood               TEXT,
+    energy_level       TEXT,
+    duration_seconds   INTEGER,
+    telegram_file_id   TEXT,
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(telegram_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_journal_user
+    ON journal_entries(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_journal_category
+    ON journal_entries(category);
+
+CREATE INDEX IF NOT EXISTS idx_journal_created
+    ON journal_entries(created_at);
+
+CREATE TABLE IF NOT EXISTS action_items (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id         INTEGER NOT NULL,
+    journal_id      INTEGER,
+    task_text       TEXT NOT NULL,
+    is_completed    INTEGER NOT NULL DEFAULT 0,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    completed_at    TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(telegram_id),
+    FOREIGN KEY (journal_id) REFERENCES journal_entries(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_action_items_user
+    ON action_items(user_id, is_completed);
 """
+
 
 
 @asynccontextmanager
@@ -109,8 +153,14 @@ async def init_db() -> None:
                 "ALTER TABLE translation_history ADD COLUMN kazakh_translation TEXT"
             )
         except aiosqlite.OperationalError:
-            # Column already exists or other schema error we can ignore
             pass
+
+        # Migrate journal_entries for mood & energy_level
+        for col in ["mood", "energy_level"]:
+            try:
+                await db.execute(f"ALTER TABLE journal_entries ADD COLUMN {col} TEXT")
+            except aiosqlite.OperationalError:
+                pass
 
         await db.commit()
 

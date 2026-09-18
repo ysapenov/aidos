@@ -12,8 +12,11 @@ build/
 venv/
 env/
 
-# Environment variables — NEVER commit this
+# Environment variables & credentials — NEVER commit these
 .env
+credentials/
+*service_account*.json
+
 
 # Database
 data/

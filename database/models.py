@@ -4,8 +4,9 @@ database/models.py — Data access functions (CRUD) for users and translation hi
 All functions are async and use aiosqlite.
 """
 
+import json
 import logging
-from typing import Optional
+from typing import Optional, Union
 import aiosqlite
 from database.db import get_db_context
 from config import settings
@@ -305,3 +306,235 @@ async def get_subscribed_user_ids() -> list[int]:
         async with db.execute("SELECT user_id FROM idiom_subscribers") as cursor:
             rows = await cursor.fetchall()
             return [row[0] for row in rows]
+
+
+# ─── Journal Entries ──────────────────────────────────────────────────────────
+
+
+async def add_journal_entry(
+    user_id: int,
+    title: str,
+    category: str,
+    summary: str,
+    key_points: Union[list[str], str],
+    action_items: Union[list[str], str],
+    raw_transcript: str,
+    tags: Union[list[str], str],
+    language: Optional[str] = None,
+    mood: Optional[str] = None,
+    energy_level: Optional[str] = None,
+    duration_seconds: Optional[int] = None,
+    telegram_file_id: Optional[str] = None,
+) -> int:
+    """Save a processed voice note/thought to journal_entries. Returns the new entry ID."""
+    if isinstance(key_points, list):
+        key_points = json.dumps(key_points, ensure_ascii=False)
+    if isinstance(action_items, list):
+        action_items = json.dumps(action_items, ensure_ascii=False)
+    if isinstance(tags, list):
+        tags = json.dumps(tags, ensure_ascii=False)
+
+    async with get_db_context() as db:
+        cursor = await db.execute(
+            """
+            INSERT INTO journal_entries
+            (user_id, title, category, summary, key_points, action_items, raw_transcript, tags, language, mood, energy_level, duration_seconds, telegram_file_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                user_id,
+                title,
+                category,
+                summary,
+                key_points,
+                action_items,
+                raw_transcript,
+                tags,
+                language,
+                mood,
+                energy_level,
+                duration_seconds,
+                telegram_file_id,
+            ),
+        )
+        await db.commit()
+        return cursor.lastrowid
+
+
+async def update_journal_category(entry_id: int, user_id: int, new_category: str) -> bool:
+    """Update the category for a specific journal entry."""
+    async with get_db_context() as db:
+        cursor = await db.execute(
+            "UPDATE journal_entries SET category = ? WHERE id = ? AND user_id = ?",
+            (new_category, entry_id, user_id),
+        )
+        await db.commit()
+        return cursor.rowcount > 0
+
+
+async def get_journal_entries(
+    user_id: int, limit: int = 10, offset: int = 0, category: Optional[str] = None
+) -> list[dict]:
+    """Return recent journal entries for a user, optionally filtered by category."""
+    query = "SELECT * FROM journal_entries WHERE user_id = ?"
+    params = [user_id]
+    if category:
+        query += " AND LOWER(category) = LOWER(?)"
+        params.append(category)
+    query += " ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?"
+    params.extend([limit, offset])
+
+    async with get_db_context() as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(query, params) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+
+async def get_journal_entry_by_id(entry_id: int, user_id: int) -> Optional[dict]:
+    """Retrieve a single journal entry by ID for a user."""
+    async with get_db_context() as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            "SELECT * FROM journal_entries WHERE id = ? AND user_id = ?",
+            (entry_id, user_id),
+        ) as cursor:
+            row = await cursor.fetchone()
+            return dict(row) if row else None
+
+
+async def delete_journal_entry(entry_id: int, user_id: int) -> bool:
+    """Delete a journal entry by ID. Returns True if deleted."""
+    async with get_db_context() as db:
+        cursor = await db.execute(
+            "DELETE FROM journal_entries WHERE id = ? AND user_id = ?",
+            (entry_id, user_id),
+        )
+        await db.commit()
+        return cursor.rowcount > 0
+
+
+async def get_all_journal_entries(user_id: int) -> list[dict]:
+    """Return all journal entries for a user ordered by date, used for CSV export."""
+    async with get_db_context() as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            "SELECT * FROM journal_entries WHERE user_id = ? ORDER BY created_at ASC, id ASC",
+            (user_id,),
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+
+async def get_journal_entries_in_range(user_id: int, since_iso: str) -> list[dict]:
+    """Retrieve journal entries created since a given timestamp (e.g. for weekly/monthly digests)."""
+    async with get_db_context() as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            "SELECT * FROM journal_entries WHERE user_id = ? AND created_at >= ? ORDER BY created_at ASC, id ASC",
+            (user_id, since_iso),
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+
+# ─── Action Items ─────────────────────────────────────────────────────────────
+
+
+async def add_action_items(
+    user_id: int, items: list[str], journal_id: Optional[int] = None
+) -> list[int]:
+    """Insert multiple action items extracted from thoughts into the action_items table."""
+    if not items:
+        return []
+
+    inserted_ids = []
+    async with get_db_context() as db:
+        for item in items:
+            clean_text = item.strip()
+            if not clean_text:
+                continue
+            cursor = await db.execute(
+                """
+                INSERT INTO action_items (user_id, journal_id, task_text)
+                VALUES (?, ?, ?)
+                """,
+                (user_id, journal_id, clean_text),
+            )
+            inserted_ids.append(cursor.lastrowid)
+        await db.commit()
+    return inserted_ids
+
+
+async def get_action_items(
+    user_id: int, include_completed: bool = False, limit: int = 50
+) -> list[dict]:
+    """Retrieve action items for a user."""
+    query = "SELECT * FROM action_items WHERE user_id = ?"
+    params = [user_id]
+    if not include_completed:
+        query += " AND is_completed = 0"
+    query += " ORDER BY is_completed ASC, created_at DESC LIMIT ?"
+    params.append(limit)
+
+    async with get_db_context() as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(query, params) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+
+async def toggle_action_item(item_id: int, user_id: int) -> Optional[bool]:
+    """
+    Toggle completion status of an action item.
+    Returns the new is_completed bool, or None if item does not exist.
+    """
+    async with get_db_context() as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            "SELECT is_completed FROM action_items WHERE id = ? AND user_id = ?",
+            (item_id, user_id),
+        ) as cursor:
+            row = await cursor.fetchone()
+            if not row:
+                return None
+            current_status = row["is_completed"]
+
+        new_status = 0 if current_status else 1
+        if new_status == 1:
+            await db.execute(
+                "UPDATE action_items SET is_completed = 1, completed_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?",
+                (item_id, user_id),
+            )
+        else:
+            await db.execute(
+                "UPDATE action_items SET is_completed = 0, completed_at = NULL WHERE id = ? AND user_id = ?",
+                (item_id, user_id),
+            )
+        await db.commit()
+        return bool(new_status)
+
+
+async def delete_action_item(item_id: int, user_id: int) -> bool:
+    """Delete an action item by ID."""
+    async with get_db_context() as db:
+        cursor = await db.execute(
+            "DELETE FROM action_items WHERE id = ? AND user_id = ?",
+            (item_id, user_id),
+        )
+        await db.commit()
+        return cursor.rowcount > 0
+
+
+async def clear_completed_action_items(user_id: int) -> int:
+    """Delete all completed action items for a user. Returns count of deleted items."""
+    async with get_db_context() as db:
+        cursor = await db.execute(
+            "DELETE FROM action_items WHERE user_id = ? AND is_completed = 1",
+            (user_id,),
+        )
+        await db.commit()
+        return cursor.rowcount
+
+
+

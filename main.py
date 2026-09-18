@@ -11,6 +11,7 @@ from config import settings
 from database.db import init_db
 from handlers import register_handlers
 from handlers.idiom import send_daily_idiom
+from handlers.journal import send_weekly_digest
 
 # Configure logging
 logging.basicConfig(
@@ -31,6 +32,9 @@ async def on_startup(app: Application) -> None:
         BotCommand("start", "Welcome message"),
         BotCommand("help", "Show all commands"),
         BotCommand("menu", "Interactive menu"),
+        BotCommand("notes", "View and export thought notes"),
+        BotCommand("actions", "View and check off action items"),
+        BotCommand("digest", "Weekly or monthly reflection digest"),
         BotCommand("translate", "Enter translate mode"),
         BotCommand("stop", "Exit translate mode"),
         BotCommand("words", "Generate advanced words"),
@@ -39,8 +43,9 @@ async def on_startup(app: Application) -> None:
         BotCommand("history", "View last 20 translations"),
         BotCommand("history_words", "View vocabulary history"),
         BotCommand("history_idioms", "View idiom history"),
-        BotCommand("history_clear", "Clear history")
+        BotCommand("history_clear", "Clear history"),
     ]
+
     await app.bot.set_my_commands(commands)
     logger.info("Bot commands updated.")
 
@@ -51,6 +56,16 @@ async def on_startup(app: Application) -> None:
         name="daily_idiom",
     )
     logger.info("Daily idiom scheduled for 14:00 UTC.")
+
+    # Schedule weekly digest on Sundays at 18:00 UTC
+    app.job_queue.run_daily(
+        send_weekly_digest,
+        time=time(hour=18, minute=0, tzinfo=timezone.utc),
+        days=(6,),
+        name="weekly_digest",
+    )
+    logger.info("Weekly digest scheduled for Sundays at 18:00 UTC.")
+
 
 
 def main() -> None:
