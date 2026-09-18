@@ -27,3 +27,12 @@ def test_settings_missing_token():
         settings = Settings()
         with pytest.raises(ValueError):
             settings.validate()
+
+
+def test_settings_defaults():
+    with patch.dict(os.environ, {}, clear=True):
+        settings = Settings()
+        assert settings.gemini_model == "gemini-3.7-flash"
+        assert settings.database_path == "data/aidos.db"
+        assert settings.history_cap == 1000
+
