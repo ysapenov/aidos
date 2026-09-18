@@ -36,11 +36,11 @@ WELCOME_MESSAGE = (
     f"{EMOJI_WAVE} <b>Hello, {{name}}! Welcome to Aidos.</b>\n\n"
     "I'm your personal AI assistant for language learning and audio thought journaling.\n\n"
     f"<b>What I can do:</b>\n"
-    f"• {EMOJI_MIC} <b>Voice Journal:</b> Send any voice thought (< 1 min) anytime — I'll clean, categorize, track mood & extract tasks!\n"
+    f"• {EMOJI_MIC} <b>Voice Journal:</b> Send any voice thought (under 1 min) anytime — I'll clean, categorize, track mood &amp; extract tasks!\n"
     f"• {EMOJI_NOTE} /notes — Browse thoughts, filter categories, or export as CSV\n"
     f"• {EMOJI_CHECK} /actions — View and manage action items extracted from your thoughts\n"
     f"• {EMOJI_CHART} /digest — Get an AI-powered weekly/monthly reflection and momentum digest\n"
-    f"• {EMOJI_TRANSLATE} Translate English words to Russian & Kazakh (/translate)\n"
+    f"• {EMOJI_TRANSLATE} Translate English words to Russian &amp; Kazakh (/translate)\n"
     f"• {EMOJI_BOOK} Generate advanced vocabulary by topic (/words)\n"
     f"• {EMOJI_TARGET} Send a daily idiom (if subscribed)\n\n"
     f"Type /help to see all commands."
@@ -49,7 +49,7 @@ WELCOME_MESSAGE = (
 HELP_MESSAGE = (
     f"{EMOJI_ROBOT} <b>Aidos — Command Reference</b>\n\n"
     "<b>Thought Journal</b>\n"
-    "  🎙 <i>Send voice or audio</i> — Auto-clean, structure, track mood & tasks (< 1 min)\n"
+    "  🎙 <i>Send voice or audio</i> — Auto-clean, structure, track mood &amp; tasks (under 1 min)\n"
     "  /notes — View recent thoughts with interactive actions\n"
     "  /notes &lt;id&gt; — View full details of a specific note\n"
     "  /notes export — Download all notes as a CSV file\n"
@@ -61,8 +61,8 @@ HELP_MESSAGE = (
     "<b>Translation</b>\n"
     "  /translate — Enter translate mode\n"
     "  /stop — Exit translate mode\n\n"
-    "<b>Vocabulary & Idioms</b>\n"
-    "  /words [topic] — Generate advanced words & expressions\n"
+    "<b>Vocabulary &amp; Idioms</b>\n"
+    "  /words [topic] — Generate advanced words &amp; expressions\n"
     "  /subscribe — Get a daily idiom\n"
     "  /unsubscribe — Stop daily idioms\n\n"
     "<b>History</b>\n"
@@ -134,7 +134,7 @@ AUDIO_TRANSCRIBE_ERROR = (
 )
 NOTES_EMPTY = (
     f"{EMOJI_NOTE} <b>No notes found.</b>\n\n"
-    "Send any voice or audio message (< 1 min) anytime to start recording your thoughts!"
+    "Send any voice or audio message (under 1 min) anytime to start recording your thoughts!"
 )
 
 ACTIONS_EMPTY = (

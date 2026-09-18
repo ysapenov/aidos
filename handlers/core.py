@@ -24,7 +24,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         first_name=user.first_name,
     )
 
-    name = user.first_name or user.username or "there"
+    import html
+    name = html.escape(user.first_name or user.username or "there")
     await update.effective_message.reply_text(
         WELCOME_MESSAGE.format(name=name),
         parse_mode="HTML",

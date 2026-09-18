@@ -343,7 +343,7 @@ def format_digest(digest: dict, period_name: str = "Weekly Digest") -> str:
         lines.append(f"\n<b>Executive Summary:</b>\n{escape_html(digest['summary'])}")
 
     if digest.get("mood_trend"):
-        lines.append(f"\n🎭 <b>Mood & Momentum:</b>\n{escape_html(digest['mood_trend'])}")
+        lines.append(f"\n🎭 <b>Mood &amp; Momentum:</b>\n{escape_html(digest['mood_trend'])}")
 
     if digest.get("key_insights"):
         lines.append("\n🌟 <b>Standout Insights:</b>")
