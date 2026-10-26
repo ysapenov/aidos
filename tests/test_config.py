@@ -35,4 +35,6 @@ def test_settings_defaults():
         assert settings.gemini_model == "gemini-3.7-flash"
         assert settings.database_path == "data/aidos.db"
         assert settings.history_cap == 1000
+        assert settings.gemini_max_retries == 3
+        assert settings.gemini_initial_retry_delay == 1.0
 

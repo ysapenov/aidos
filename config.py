@@ -42,6 +42,12 @@ class Settings:
     journal_model: str = field(
         default_factory=lambda: os.getenv("JOURNAL_MODEL", "gemini-3.8-flash")
     )
+    gemini_max_retries: int = field(
+        default_factory=lambda: int(os.getenv("GEMINI_MAX_RETRIES", "3"))
+    )
+    gemini_initial_retry_delay: float = field(
+        default_factory=lambda: float(os.getenv("GEMINI_INITIAL_RETRY_DELAY", "1.0"))
+    )
 
     # Google Sheets Integration
     google_sheet_id: str = field(

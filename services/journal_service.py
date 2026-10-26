@@ -12,7 +12,7 @@ import logging
 from typing import Any
 from google.genai import types
 from config import settings
-from services.gemini_service import _get_client, parse_json_response
+from services.gemini_service import _get_client, parse_json_response, call_with_retry
 from prompts.journal import JOURNAL_STRUCTURING_PROMPT
 
 logger = logging.getLogger(__name__)
@@ -56,7 +56,8 @@ async def process_audio_thought(audio_bytes: bytes, mime_type: str = "audio/ogg"
         mime_type,
     )
 
-    response = await client.aio.models.generate_content(
+    response = await call_with_retry(
+        client.aio.models.generate_content,
         model=settings.journal_model,
         contents=[audio_part, JOURNAL_STRUCTURING_PROMPT],
     )
@@ -208,7 +209,8 @@ async def generate_journal_digest(entries: list[dict], period_name: str = "Last 
     client = _get_client()
     logger.info("Generating %s with model '%s' (%d notes)", period_name, settings.journal_model, len(entries))
 
-    response = await client.aio.models.generate_content(
+    response = await call_with_retry(
+        client.aio.models.generate_content,
         model=settings.journal_model,
         contents=[prompt],
     )
