@@ -159,83 +159,54 @@ async def test_generate_content_with_fallback_primary_succeeds():
     with patch("services.gemini_service._get_client", return_value=mock_client):
         result = await generate_content_with_fallback(
             contents="test",
-            primary_model="gemini-3.8-live",
-            backup_models=["gemini-3.8-flash", "gemini-3.6-flash"],
+            primary_model="gemini-3.8-flash",
+            backup_models=["gemini-3.6-flash"],
         )
 
     assert result == mock_response
     mock_client.aio.models.generate_content.assert_called_once()
-    assert mock_client.aio.models.generate_content.call_args.kwargs["model"] == "gemini-3.8-live"
+    assert mock_client.aio.models.generate_content.call_args.kwargs["model"] == "gemini-3.8-flash"
 
 
 @pytest.mark.asyncio
-async def test_generate_content_with_fallback_to_first_backup():
+async def test_generate_content_with_fallback_to_backup():
     mock_response = MagicMock()
-    mock_response.text = "Backup 1 success"
+    mock_response.text = "Backup success"
 
-    error_400 = DummyAPIError("Action not supported", code=400)
-
-    mock_client = MagicMock()
-    mock_client.aio.models.generate_content = AsyncMock(side_effect=[error_400, mock_response])
-
-    with patch("services.gemini_service._get_client", return_value=mock_client):
-        result = await generate_content_with_fallback(
-            contents="test",
-            primary_model="gemini-3.8-live",
-            backup_models=["gemini-3.8-flash", "gemini-3.6-flash"],
-        )
-
-    assert result == mock_response
-    assert mock_client.aio.models.generate_content.call_count == 2
-    # First call attempted primary model
-    assert mock_client.aio.models.generate_content.call_args_list[0].kwargs["model"] == "gemini-3.8-live"
-    # Second call attempted first backup model
-    assert mock_client.aio.models.generate_content.call_args_list[1].kwargs["model"] == "gemini-3.8-flash"
-
-
-@pytest.mark.asyncio
-async def test_generate_content_with_fallback_to_second_backup():
-    mock_response = MagicMock()
-    mock_response.text = "Backup 2 success"
-
-    error_live = DummyAPIError("Action not supported", code=400)
     error_503 = DummyAPIError("High demand", code=503, status="UNAVAILABLE")
 
-    # primary fails with 400 (1 call), backup 1 fails with 503 (1 call with max_retries=0), backup 2 succeeds
     mock_client = MagicMock()
-    mock_client.aio.models.generate_content = AsyncMock(side_effect=[error_live, error_503, mock_response])
+    mock_client.aio.models.generate_content = AsyncMock(side_effect=[error_503, mock_response])
 
     with patch("services.gemini_service._get_client", return_value=mock_client):
         result = await generate_content_with_fallback(
             contents="test",
-            primary_model="gemini-3.8-live",
-            backup_models=["gemini-3.8-flash", "gemini-3.6-flash"],
+            primary_model="gemini-3.8-flash",
+            backup_models=["gemini-3.6-flash"],
             max_retries=0,
         )
 
     assert result == mock_response
-    assert mock_client.aio.models.generate_content.call_count == 3
-    assert mock_client.aio.models.generate_content.call_args_list[0].kwargs["model"] == "gemini-3.8-live"
-    assert mock_client.aio.models.generate_content.call_args_list[1].kwargs["model"] == "gemini-3.8-flash"
-    assert mock_client.aio.models.generate_content.call_args_list[2].kwargs["model"] == "gemini-3.6-flash"
+    assert mock_client.aio.models.generate_content.call_count == 2
+    assert mock_client.aio.models.generate_content.call_args_list[0].kwargs["model"] == "gemini-3.8-flash"
+    assert mock_client.aio.models.generate_content.call_args_list[1].kwargs["model"] == "gemini-3.6-flash"
 
 
 @pytest.mark.asyncio
 async def test_generate_content_with_fallback_all_fail():
-    error_1 = DummyAPIError("Error 1", code=400)
-    error_2 = DummyAPIError("Error 2", code=400)
-    error_3 = DummyAPIError("Error 3", code=400)
+    error_1 = DummyAPIError("Error 1", code=503, status="UNAVAILABLE")
+    error_2 = DummyAPIError("Error 2", code=503, status="UNAVAILABLE")
 
     mock_client = MagicMock()
-    mock_client.aio.models.generate_content = AsyncMock(side_effect=[error_1, error_2, error_3])
+    mock_client.aio.models.generate_content = AsyncMock(side_effect=[error_1, error_2])
 
     with patch("services.gemini_service._get_client", return_value=mock_client):
-        with pytest.raises(DummyAPIError, match="Error 3"):
+        with pytest.raises(DummyAPIError, match="Error 2"):
             await generate_content_with_fallback(
                 contents="test",
-                primary_model="gemini-3.8-live",
-                backup_models=["gemini-3.8-flash", "gemini-3.6-flash"],
+                primary_model="gemini-3.8-flash",
+                backup_models=["gemini-3.6-flash"],
                 max_retries=0,
             )
 
-    assert mock_client.aio.models.generate_content.call_count == 3
+    assert mock_client.aio.models.generate_content.call_count == 2

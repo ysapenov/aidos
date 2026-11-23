@@ -43,15 +43,15 @@ class Settings:
     # Google Gemini
     gemini_api_key: str = field(default_factory=lambda: os.getenv("GEMINI_API_KEY", ""))
     gemini_model: str = field(
-        default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-3.8-live")
+        default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
     )
     backup_models: list[str] = field(
         default_factory=lambda: _parse_str_list(
-            "GEMINI_BACKUP_MODELS", "gemini-3.8-flash,gemini-3.6-flash"
+            "GEMINI_BACKUP_MODELS", "gemini-3.6-flash"
         )
     )
     journal_model: str = field(
-        default_factory=lambda: os.getenv("JOURNAL_MODEL", "gemini-3.8-live")
+        default_factory=lambda: os.getenv("JOURNAL_MODEL", "gemini-3.8-flash")
     )
     gemini_max_retries: int = field(
         default_factory=lambda: int(os.getenv("GEMINI_MAX_RETRIES", "3"))

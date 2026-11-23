@@ -37,10 +37,10 @@ def test_settings_missing_token():
 def test_settings_defaults():
     with patch.dict(os.environ, {}, clear=True):
         settings = Settings()
-        assert settings.gemini_model == "gemini-3.8-live"
-        assert settings.journal_model == "gemini-3.8-live"
-        assert settings.backup_models == ["gemini-3.8-flash", "gemini-3.6-flash"]
-        assert settings.gemini_backup_models == ["gemini-3.8-flash", "gemini-3.6-flash"]
+        assert settings.gemini_model == "gemini-3.8-flash"
+        assert settings.journal_model == "gemini-3.8-flash"
+        assert settings.backup_models == ["gemini-3.6-flash"]
+        assert settings.gemini_backup_models == ["gemini-3.6-flash"]
         assert settings.database_path == "data/aidos.db"
         assert settings.history_cap == 1000
         assert settings.gemini_max_retries == 3

@@ -80,6 +80,12 @@ def test_generate_notes_csv():
     assert "45" in csv_output
 
 
+class DummyAPIError(Exception):
+    def __init__(self, message: str, code: int | None = None):
+        super().__init__(message)
+        self.code = code
+
+
 @pytest.mark.asyncio
 async def test_process_audio_thought_with_fallback():
     mock_json = {
@@ -95,18 +101,18 @@ async def test_process_audio_thought_with_fallback():
     mock_response = MagicMock()
     mock_response.text = json.dumps(mock_json)
 
-    error_live = RuntimeError("400 Model gemini-3.8-live does not support generateContent")
+    error_model = DummyAPIError("Model gemini-3.8-flash failed", code=400)
 
     mock_client = MagicMock()
-    mock_client.aio.models.generate_content = AsyncMock(side_effect=[error_live, mock_response])
+    mock_client.aio.models.generate_content = AsyncMock(side_effect=[error_model, mock_response])
 
     with patch("services.journal_service._get_client", return_value=mock_client):
         result = await process_audio_thought(b"audio_bytes", "audio/ogg")
 
     assert result["title"] == "Fallback Success"
     assert mock_client.aio.models.generate_content.call_count == 2
-    assert mock_client.aio.models.generate_content.call_args_list[0].kwargs["model"] == "gemini-3.8-live"
-    assert mock_client.aio.models.generate_content.call_args_list[1].kwargs["model"] == "gemini-3.8-flash"
+    assert mock_client.aio.models.generate_content.call_args_list[0].kwargs["model"] == "gemini-3.8-flash"
+    assert mock_client.aio.models.generate_content.call_args_list[1].kwargs["model"] == "gemini-3.6-flash"
 
 
 @pytest.mark.asyncio
@@ -120,10 +126,10 @@ async def test_generate_journal_digest_with_fallback():
     mock_response = MagicMock()
     mock_response.text = json.dumps(mock_json)
 
-    error_live = RuntimeError("400 Model gemini-3.8-live does not support generateContent")
+    error_model = DummyAPIError("Model gemini-3.8-flash failed", code=400)
 
     mock_client = MagicMock()
-    mock_client.aio.models.generate_content = AsyncMock(side_effect=[error_live, mock_response])
+    mock_client.aio.models.generate_content = AsyncMock(side_effect=[error_model, mock_response])
 
     entries = [
         {"category": "Work", "title": "Note 1", "summary": "Done", "tags": "[]", "created_at": "2026-11-20"}
@@ -134,5 +140,5 @@ async def test_generate_journal_digest_with_fallback():
 
     assert result["summary"] == "Weekly summary"
     assert mock_client.aio.models.generate_content.call_count == 2
-    assert mock_client.aio.models.generate_content.call_args_list[0].kwargs["model"] == "gemini-3.8-live"
-    assert mock_client.aio.models.generate_content.call_args_list[1].kwargs["model"] == "gemini-3.8-flash"
+    assert mock_client.aio.models.generate_content.call_args_list[0].kwargs["model"] == "gemini-3.8-flash"
+    assert mock_client.aio.models.generate_content.call_args_list[1].kwargs["model"] == "gemini-3.6-flash"
