@@ -27,6 +27,12 @@ def _parse_id_list(env_var: str) -> set[int]:
     return ids
 
 
+def _parse_str_list(env_var: str, default: str = "") -> list[str]:
+    """Parse a comma-separated string of strings from an env var."""
+    raw = os.getenv(env_var, default)
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
 @dataclass
 class Settings:
     # Telegram
@@ -37,10 +43,15 @@ class Settings:
     # Google Gemini
     gemini_api_key: str = field(default_factory=lambda: os.getenv("GEMINI_API_KEY", ""))
     gemini_model: str = field(
-        default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-3.7-flash")
+        default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-3.8-live")
+    )
+    backup_models: list[str] = field(
+        default_factory=lambda: _parse_str_list(
+            "GEMINI_BACKUP_MODELS", "gemini-3.8-flash,gemini-3.6-flash"
+        )
     )
     journal_model: str = field(
-        default_factory=lambda: os.getenv("JOURNAL_MODEL", "gemini-3.8-flash")
+        default_factory=lambda: os.getenv("JOURNAL_MODEL", "gemini-3.8-live")
     )
     gemini_max_retries: int = field(
         default_factory=lambda: int(os.getenv("GEMINI_MAX_RETRIES", "3"))
@@ -48,6 +59,11 @@ class Settings:
     gemini_initial_retry_delay: float = field(
         default_factory=lambda: float(os.getenv("GEMINI_INITIAL_RETRY_DELAY", "1.0"))
     )
+
+    @property
+    def gemini_backup_models(self) -> list[str]:
+        """Alias for backup_models."""
+        return self.backup_models
 
     # Google Sheets Integration
     google_sheet_id: str = field(
@@ -59,7 +75,6 @@ class Settings:
     google_sheets_credentials_json: str = field(
         default_factory=lambda: os.getenv("GOOGLE_SHEETS_CREDENTIALS_JSON", "")
     )
-
 
     # Access control
     allowed_user_ids: set[int] = field(

@@ -10,6 +10,7 @@ import json
 import logging
 import random
 import re
+from typing import Any
 from google import genai
 from config import settings
 from prompts.translation import TRANSLATION_PROMPT
@@ -18,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 # ─── Gemini client (module-level singleton) ────────────────────────────────────
 _client = None
+
 
 def _get_client():
     global _client
@@ -145,9 +147,91 @@ async def call_with_retry(
                 raise last_exception
 
 
+async def generate_content_with_fallback(
+    contents,
+    primary_model: str | None = None,
+    backup_models: list[str] | None = None,
+    max_retries: int | None = None,
+    initial_delay: float | None = None,
+    client: Any | None = None,
+    **kwargs,
+):
+    """
+    Executes client.aio.models.generate_content trying primary_model first,
+    then falling back to backup_models in order if the current model fails.
+    Each model attempt uses call_with_retry for transient errors (e.g. 503).
+
+    Args:
+        contents: Content or list of contents to pass to generate_content.
+        primary_model: The initial model to attempt (defaults to settings.gemini_model).
+        backup_models: List of fallback models (defaults to settings.backup_models).
+        max_retries: Max retry attempts per model for transient errors.
+        initial_delay: Initial retry delay in seconds.
+        client: Optional Gemini client instance (defaults to _get_client()).
+        **kwargs: Additional kwargs passed to client.aio.models.generate_content.
+
+    Returns:
+        The response from generate_content.
+
+    Raises:
+        The exception from the final attempted model if all models fail.
+    """
+    active_client = client or _get_client()
+
+    main_model = primary_model or settings.gemini_model
+    backups = backup_models if backup_models is not None else settings.backup_models
+
+    # Build unique, ordered list of models to try
+    models_to_try = [main_model]
+    for m in backups:
+        if m and m not in models_to_try:
+            models_to_try.append(m)
+
+    last_exception = None
+
+    for i, model in enumerate(models_to_try):
+        try:
+            logger.info(
+                "Attempting Gemini generation with model '%s' (%d/%d)",
+                model,
+                i + 1,
+                len(models_to_try),
+            )
+            response = await call_with_retry(
+                active_client.aio.models.generate_content,
+                model=model,
+                contents=contents,
+                max_retries=max_retries,
+                initial_delay=initial_delay,
+                **kwargs,
+            )
+            return response
+        except Exception as e:
+            last_exception = e
+            has_next = (i + 1) < len(models_to_try)
+            if has_next:
+                next_model = models_to_try[i + 1]
+                logger.warning(
+                    "Model '%s' failed: %s. Falling back to backup model '%s' (%d/%d)...",
+                    model,
+                    e,
+                    next_model,
+                    i + 2,
+                    len(models_to_try),
+                )
+            else:
+                logger.error(
+                    "All Gemini models %s failed. Last error on '%s': %s",
+                    models_to_try,
+                    model,
+                    e,
+                )
+                raise last_exception
+
+
 async def translate_word(word: str) -> dict:
     """
-    Translate a single English word to Russian/Kazakh using Gemini 2.5 Flash.
+    Translate a single English word to Russian/Kazakh using Gemini.
 
     Returns a parsed JSON dictionary containing the translation data.
     Raises an exception on API failure (caller handles it).
@@ -157,14 +241,13 @@ async def translate_word(word: str) -> dict:
 
     logger.info("Translating word: '%s'", word)
 
-    client = _get_client()
-    response = await call_with_retry(
-        client.aio.models.generate_content,
-        model=settings.gemini_model,
+    response = await generate_content_with_fallback(
         contents=prompt,
+        primary_model=settings.gemini_model,
+        backup_models=settings.backup_models,
     )
 
-    result = response.text.strip()
+    result = response.text.strip() if response.text else ""
     logger.debug("Gemini response for '%s': %s...", word, result[:100])
 
     return parse_json_response(result)
@@ -172,16 +255,15 @@ async def translate_word(word: str) -> dict:
 
 async def generate_content(prompt: str) -> str:
     """
-    Generic wrapper to generate content using Gemini 2.5 Flash.
+    Generic wrapper to generate content using Gemini with automatic model fallback.
     Returns the raw text response.
     """
-    client = _get_client()
-    response = await call_with_retry(
-        client.aio.models.generate_content,
-        model=settings.gemini_model,
+    response = await generate_content_with_fallback(
         contents=prompt,
+        primary_model=settings.gemini_model,
+        backup_models=settings.backup_models,
     )
-    return response.text.strip()
+    return response.text.strip() if response.text else ""
 
 
 def parse_json_response(text: str) -> dict:

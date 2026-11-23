@@ -11,6 +11,8 @@ def test_settings_validation():
         "ADMIN_USER_IDS": "111",
         "DATABASE_PATH": "data/test.db",
         "GEMINI_MODEL": "test-model",
+        "GEMINI_BACKUP_MODELS": "backup-1, backup-2",
+        "JOURNAL_MODEL": "test-journal",
         "HISTORY_CAP": "50"
     }, clear=True):
         settings = Settings()
@@ -20,6 +22,9 @@ def test_settings_validation():
         assert settings.admin_user_ids == {111}
         assert settings.database_path == "data/test.db"
         assert settings.gemini_model == "test-model"
+        assert settings.backup_models == ["backup-1", "backup-2"]
+        assert settings.gemini_backup_models == ["backup-1", "backup-2"]
+        assert settings.journal_model == "test-journal"
         assert settings.history_cap == 50
 
 def test_settings_missing_token():
@@ -32,7 +37,10 @@ def test_settings_missing_token():
 def test_settings_defaults():
     with patch.dict(os.environ, {}, clear=True):
         settings = Settings()
-        assert settings.gemini_model == "gemini-3.7-flash"
+        assert settings.gemini_model == "gemini-3.8-live"
+        assert settings.journal_model == "gemini-3.8-live"
+        assert settings.backup_models == ["gemini-3.8-flash", "gemini-3.6-flash"]
+        assert settings.gemini_backup_models == ["gemini-3.8-flash", "gemini-3.6-flash"]
         assert settings.database_path == "data/aidos.db"
         assert settings.history_cap == 1000
         assert settings.gemini_max_retries == 3

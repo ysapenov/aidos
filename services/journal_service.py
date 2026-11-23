@@ -12,7 +12,11 @@ import logging
 from typing import Any
 from google.genai import types
 from config import settings
-from services.gemini_service import _get_client, parse_json_response, call_with_retry
+from services.gemini_service import (
+    _get_client,
+    parse_json_response,
+    generate_content_with_fallback,
+)
 from prompts.journal import JOURNAL_STRUCTURING_PROMPT
 
 logger = logging.getLogger(__name__)
@@ -50,16 +54,16 @@ async def process_audio_thought(audio_bytes: bytes, mime_type: str = "audio/ogg"
     )
 
     logger.info(
-        "Processing audio thought with model '%s' (bytes=%d, mime=%s)",
-        settings.journal_model,
+        "Processing audio thought (bytes=%d, mime=%s)",
         len(audio_bytes),
         mime_type,
     )
 
-    response = await call_with_retry(
-        client.aio.models.generate_content,
-        model=settings.journal_model,
+    response = await generate_content_with_fallback(
         contents=[audio_part, JOURNAL_STRUCTURING_PROMPT],
+        primary_model=settings.journal_model,
+        backup_models=settings.backup_models,
+        client=client,
     )
 
     raw_text = response.text.strip() if response.text else ""
@@ -205,14 +209,14 @@ async def generate_journal_digest(entries: list[dict], period_name: str = "Last 
         .replace("{entries_json}", entries_json)
     )
 
-
     client = _get_client()
-    logger.info("Generating %s with model '%s' (%d notes)", period_name, settings.journal_model, len(entries))
+    logger.info("Generating %s (%d notes)", period_name, len(entries))
 
-    response = await call_with_retry(
-        client.aio.models.generate_content,
-        model=settings.journal_model,
+    response = await generate_content_with_fallback(
         contents=[prompt],
+        primary_model=settings.journal_model,
+        backup_models=settings.backup_models,
+        client=client,
     )
 
     raw_text = response.text.strip() if response.text else ""
@@ -254,5 +258,3 @@ def _to_tag_string(val: Any) -> str:
     if isinstance(val, list):
         return ", ".join(val)
     return str(val) if val else ""
-
-

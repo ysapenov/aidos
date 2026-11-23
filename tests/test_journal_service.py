@@ -1,7 +1,11 @@
 import json
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-from services.journal_service import process_audio_thought, generate_notes_csv
+from services.journal_service import (
+    process_audio_thought,
+    generate_notes_csv,
+    generate_journal_digest,
+)
 
 
 @pytest.mark.asyncio
@@ -74,3 +78,61 @@ def test_generate_notes_csv():
     assert "Новая идея для бота" in csv_output
     assert "Быстро" in csv_output
     assert "45" in csv_output
+
+
+@pytest.mark.asyncio
+async def test_process_audio_thought_with_fallback():
+    mock_json = {
+        "title": "Fallback Success",
+        "category": "Ideas",
+        "summary": "Processed via backup model",
+        "key_points": ["Point 1"],
+        "action_items": [],
+        "clean_transcript": "Testing fallback",
+        "tags": ["test"],
+        "language": "en",
+    }
+    mock_response = MagicMock()
+    mock_response.text = json.dumps(mock_json)
+
+    error_live = RuntimeError("400 Model gemini-3.8-live does not support generateContent")
+
+    mock_client = MagicMock()
+    mock_client.aio.models.generate_content = AsyncMock(side_effect=[error_live, mock_response])
+
+    with patch("services.journal_service._get_client", return_value=mock_client):
+        result = await process_audio_thought(b"audio_bytes", "audio/ogg")
+
+    assert result["title"] == "Fallback Success"
+    assert mock_client.aio.models.generate_content.call_count == 2
+    assert mock_client.aio.models.generate_content.call_args_list[0].kwargs["model"] == "gemini-3.8-live"
+    assert mock_client.aio.models.generate_content.call_args_list[1].kwargs["model"] == "gemini-3.8-flash"
+
+
+@pytest.mark.asyncio
+async def test_generate_journal_digest_with_fallback():
+    mock_json = {
+        "summary": "Weekly summary",
+        "mood_trend": "positive",
+        "key_insights": ["Insight 1"],
+        "action_items": ["Action 1"],
+    }
+    mock_response = MagicMock()
+    mock_response.text = json.dumps(mock_json)
+
+    error_live = RuntimeError("400 Model gemini-3.8-live does not support generateContent")
+
+    mock_client = MagicMock()
+    mock_client.aio.models.generate_content = AsyncMock(side_effect=[error_live, mock_response])
+
+    entries = [
+        {"category": "Work", "title": "Note 1", "summary": "Done", "tags": "[]", "created_at": "2026-11-20"}
+    ]
+
+    with patch("services.journal_service._get_client", return_value=mock_client):
+        result = await generate_journal_digest(entries, "Weekly Digest")
+
+    assert result["summary"] == "Weekly summary"
+    assert mock_client.aio.models.generate_content.call_count == 2
+    assert mock_client.aio.models.generate_content.call_args_list[0].kwargs["model"] == "gemini-3.8-live"
+    assert mock_client.aio.models.generate_content.call_args_list[1].kwargs["model"] == "gemini-3.8-flash"
